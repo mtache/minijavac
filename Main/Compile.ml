@@ -3,6 +3,7 @@ open Parser
 open Lexer
 open Location
 open Lexing
+open AST
 
 let parse_with_error lexbuf =
   try Parser.compilation_unit Lexer.read lexbuf with
@@ -14,6 +15,12 @@ let parse_with_error lexbuf =
     print_string ("Parser error\n");
     Location.print (Location.curr lexbuf);
     exit (-1)
+  | Failure msg ->
+    print_string (msg);
+    Location.print (Location.curr lexbuf);
+    exit (-1)
+
 
 let execute lexbuf verbose = 
-    parse_with_error lexbuf;
+    let ast = parse_with_error lexbuf in
+    print_ast ast;

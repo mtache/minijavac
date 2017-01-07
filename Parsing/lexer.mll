@@ -7,7 +7,7 @@ let sub = '\x1A'
 let space = [' ' '\t' '\n']
 
 rule read = parse
-     space+  { read lexbuf }
+    | space+  { read lexbuf }
     | ';'       { SEMICOLON }
     | "package" { PACKAGE }
     | ['a'-'z']+ as s   { IDENTIFIER(s) }

@@ -1,0 +1,1 @@
+static strictfp class MyClass {}

@@ -1,0 +1,3 @@
+package vista;
+
+class Point {}

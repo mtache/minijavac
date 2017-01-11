@@ -1,0 +1,2 @@
+package myPackage;
+package myOtherPatckage;

@@ -6,26 +6,24 @@
 %token PUBLIC PROTECTED PRIVATE ABSTRACT STATIC FINAL STRICTFP
 %token CLASS INTERFACE
 %token <string> IDENTIFIER
-%type <package_declaration> package_declaration
-%type <import_declaration> import_declaration
+%type <package> package_declaration
+%type <import> import_declaration
 %type <type_declaration> type_declaration
 %type <class_declaration> class_declaration
 %type <interface_declaration> interface_declaration
 %type <qualified_name> qualified_name
-%start compilation_unit
-%type <AST.ast> compilation_unit
+%start start
+%type <AST.ast> start
 %%
-compilation_unit:
+start:
     | p=package_declaration? i=import_declaration* t=type_declaration* EOF { (p, i, t) }
 import_declaration:
-    | IMPORT IDENTIFIER SEMICOLON { SingleTypeImport }
-    | IMPORT IDENTIFIER POINT STAR SEMICOLON { TypeImportOnDemand }
-    | IMPORT STATIC IDENTIFIER POINT IDENTIFIER SEMICOLON { SingleStaticImport }
-    | IMPORT STATIC IDENTIFIER POINT STAR  SEMICOLON { StaticImportOnDemand }
+    | IMPORT t=type_name SEMICOLON { SingleTypeImport(t) }
+    | IMPORT t=type_name POINT STAR SEMICOLON { TypeImportOnDemand(t) } (*TODO package or type names *)
+    | IMPORT STATIC t=type_name POINT IDENTIFIER SEMICOLON { SingleStaticImport(t) }
+    | IMPORT STATIC t=type_name POINT STAR SEMICOLON { StaticImportOnDemand(t) }
 package_declaration:
-    | PACKAGE p=package_name SEMICOLON { p }
-package_name:
-    | s=qualified_name { Package(s) }
+    | PACKAGE p=qualified_name SEMICOLON { Package(p) }
 type_declaration:
     | c=class_declaration { Class(c) }
     | i=interface_declaration { Interface(i) }
@@ -50,3 +48,6 @@ interface_modifier:
     | STRICTFP { Strictfp }
 qualified_name:
     | n=separated_nonempty_list(POINT, IDENTIFIER) { n }
+type_name: (* FIXME probably duplicate with qualified_name *)
+    | i=IDENTIFIER { i }
+    | t=type_name POINT i=IDENTIFIER { t^"."^i }

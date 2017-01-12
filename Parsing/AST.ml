@@ -1,12 +1,12 @@
 type qualified_name = string list
 
-type package_declaration = Package of qualified_name
+type package = Package of qualified_name
 
-type import_declaration =
-    | SingleTypeImport
-    | TypeImportOnDemand
-    | SingleStaticImport
-    | StaticImportOnDemand
+type import =
+    | SingleTypeImport of string
+    | TypeImportOnDemand of string
+    | SingleStaticImport of string
+    | StaticImportOnDemand of string
 
 type modifier =
     | Public
@@ -25,7 +25,7 @@ type type_declaration =
     | Class of class_declaration
     | Interface of interface_declaration
 
-type ast = package_declaration option * import_declaration list * type_declaration list
+type ast = package option * import list * type_declaration list
 
 let rec print_qualified_name = function
     | [] -> ()
@@ -36,14 +36,27 @@ let print_declaration = function
     | Package(s) -> print_string "package"; print_qualified_name s
     | _ -> ()
 
+type expression = Expression of string
+
+type methodnode =
+    {
+      name : string;
+      body : expression;
+    }
+
+type classnode =
+    {
+      name : string;
+      methods : methodnode list;
+    }
 
 let rec print_imports = function
     | [] -> ()
     | i::t -> begin match i with
-            | SingleTypeImport -> print_string "Single type import"
-            | TypeImportOnDemand -> print_string "Type import on demand"
-            | SingleStaticImport -> print_string "Single static import"
-            | StaticImportOnDemand -> print_string "Static import on demand"
+            | SingleTypeImport(s) -> print_string ("SingleTypeImport"^s^"\n")
+            | TypeImportOnDemand(s) -> print_string ("TypeImportOnDemand"^s^"\n")
+            | SingleStaticImport(s) -> print_string ("SingleStaticImport"^s^"\n")
+            | StaticImportOnDemand(s) -> print_string ("StaticImportOnDemand"^s^"\n")
             end;
             print_imports t
 
@@ -74,8 +87,7 @@ let rec print_types = function
             end;
             print_types t
 
-
-
 let print_ast = function
     | (Some(p),i,t) -> print_declaration p; print_imports i; print_types t
     | (None,i,t) -> (); print_imports i; print_types t
+    

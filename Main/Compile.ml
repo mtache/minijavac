@@ -6,7 +6,7 @@ open Lexing
 open AST
 
 let parse_with_error lexbuf =
-  try Parser.compilation_unit Lexer.read lexbuf with
+  try Parser.start Lexer.read lexbuf with
   | SyntaxError msg ->
     print_string (msg);
     Location.print (Location.curr lexbuf);

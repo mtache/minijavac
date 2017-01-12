@@ -1,0 +1,1 @@
+abstract interface MyClass {} //deprecated, not really important

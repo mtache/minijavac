@@ -1,0 +1,1 @@
+public final interface MyClass {}

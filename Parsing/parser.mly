@@ -5,17 +5,19 @@
 %token LBRACKET RBRACKET
 %token PUBLIC PROTECTED PRIVATE ABSTRACT STATIC FINAL STRICTFP
 %token CLASS INTERFACE
+%token EXTENDS
 %token <string> IDENTIFIER
 %type <package_declaration> package_declaration
 %type <import_declaration> import_declaration
 %type <type_declaration> type_declaration
 %type <class_declaration> class_declaration
 %type <interface_declaration> interface_declaration
+%type <qualified_name> qualified_name
 %start compilation_unit
 %type <AST.ast> compilation_unit
 %%
 compilation_unit:
-    | p=package_declaration? i=import_declaration* t=type_declaration* EOF { (p , i, t) }
+    | p=package_declaration? i=import_declaration* t=type_declaration* EOF { (p, i, t) }
 import_declaration:
     | IMPORT IDENTIFIER SEMICOLON { SingleTypeImport }
     | IMPORT IDENTIFIER POINT STAR SEMICOLON { TypeImportOnDemand }
@@ -24,7 +26,7 @@ import_declaration:
 package_declaration:
     | PACKAGE p=package_name SEMICOLON { p }
 package_name:
-    | s=IDENTIFIER { Package(s) }
+    | s=qualified_name { Package(s) }
 type_declaration:
     | c=class_declaration { Class(c) }
     | i=interface_declaration { Interface(i) }
@@ -47,3 +49,5 @@ interface_modifier:
     | ABSTRACT { Abstract }
     | STATIC { Static }
     | STRICTFP { Strictfp }
+qualified_name:
+    | n=separated_nonempty_list(POINT, IDENTIFIER) { n }

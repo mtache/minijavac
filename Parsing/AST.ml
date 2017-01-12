@@ -1,4 +1,6 @@
-type package_declaration = Package of string
+type qualified_name = string list
+
+type package_declaration = Package of qualified_name
 
 type import_declaration =
     | SingleTypeImport
@@ -25,8 +27,13 @@ type type_declaration =
 
 type ast = package_declaration option * import_declaration list * type_declaration list
 
+let rec print_qualified_name = function
+    | [] -> ()
+    | i::t -> print_string i;
+              print_qualified_name t
+
 let print_declaration = function
-    | Package(s) -> print_string s
+    | Package(s) -> print_string "package"; print_qualified_name s
     | _ -> ()
 
 
@@ -70,5 +77,5 @@ let rec print_types = function
 
 
 let print_ast = function
-    | (Some(p),i,t) -> print_string ("package"); print_imports i; print_types t
+    | (Some(p),i,t) -> print_declaration p; print_imports i; print_types t
     | (None,i,t) -> (); print_imports i; print_types t

@@ -5,7 +5,6 @@
 %token LBRACKET RBRACKET
 %token PUBLIC PROTECTED PRIVATE ABSTRACT STATIC FINAL STRICTFP
 %token CLASS INTERFACE
-%token EXTENDS
 %token <string> IDENTIFIER
 %type <package_declaration> package_declaration
 %type <import_declaration> import_declaration

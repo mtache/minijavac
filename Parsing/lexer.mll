@@ -22,6 +22,7 @@ rule read = parse
     | "final"   { FINAL }
     | "strictfp"    { STRICTFP }
     | "class"   { CLASS }
+    | "interface" { INTERFACE }
     | "{" { RBRACKET }
     | "}" { LBRACKET }
     | ['a'-'z']+ as s   { IDENTIFIER(s) }

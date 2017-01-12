@@ -1,1 +1,1 @@
-public final interface MyClass {}
+public interface MyClass {}

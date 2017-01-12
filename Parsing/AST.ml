@@ -17,7 +17,11 @@ type modifier =
 
 type class_declaration = modifier list * string
 
-type type_declaration = Class of class_declaration
+type interface_declaration = modifier list * string
+
+type type_declaration = 
+    | Class of class_declaration
+    | Interface of interface_declaration
 
 type ast = package_declaration option * import_declaration list * type_declaration list
 
@@ -50,12 +54,17 @@ let rec print_modifiers = function
             print_modifiers t
 
 let print_class = function
-    | (m,s) -> print_modifiers m; print_string s
+    | (m,s) -> print_modifiers m; print_string "class"; print_string s
+
+let print_interface = function
+    | (m,s) -> print_modifiers m; print_string "interface"; print_string s
 
 let rec print_types = function
     | [] -> ()
-    | i::t -> match i with
-            | Class(c) -> print_class c;
+    | i::t -> begin match i with
+            | Class(c) -> print_class c
+            | Interface(i) -> print_interface i
+            end;
             print_types t
 
 

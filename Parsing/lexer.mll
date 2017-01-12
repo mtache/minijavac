@@ -14,6 +14,16 @@ rule read = parse
     | "package"         { PACKAGE }
     | "import"          { IMPORT }
     | "static"          { STATIC }
+    | "public"  { PUBLIC }
+    | "protected"   { PROTECTED }
+    | "private" { PRIVATE }
+    | "abstract"    { ABSTRACT }
+    | "static"  { STATIC }
+    | "final"   { FINAL }
+    | "strictfp"    { STRICTFP }
+    | "class"   { CLASS }
+    | "{" { RBRACKET }
+    | "}" { LBRACKET }
     | ['a'-'z']+ as s   { IDENTIFIER(s) }
     | eof     { EOF }
     | _ { raise (SyntaxError ("Unexpected char: " ^ Lexing.lexeme lexbuf)) }

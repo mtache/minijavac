@@ -5,10 +5,10 @@
 %token <string> IDENTIFIER
 %type <package_declaration> package_declaration
 %type <import_declaration> import_declaration
-%start start
-%type <AST.ast> start
+%start compilation_unit
+%type <AST.ast> compilation_unit
 %%
-start:
+compilation_unit:
     | p=package_declaration? i=import_declaration* EOF { (p , i) }
 import_declaration:
     | IMPORT IDENTIFIER SEMICOLON { SingleTypeImport }

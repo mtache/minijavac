@@ -8,22 +8,27 @@
 %token <string> IDENTIFIER
 %type <package> package_declaration
 %type <import> import_declaration
-%type <type_declaration> type_declaration
-%type <class_declaration> class_declaration
-%type <interface_declaration> interface_declaration
-%type <qualified_name> qualified_name
+%type <name> qualified_name
 %start start
 %type <AST.ast> start
 %%
 start:
     | p=package_declaration? i=import_declaration* t=type_declaration* EOF { (p, i, t) }
+
+(* Import declarations *)
 import_declaration:
-    | IMPORT t=type_name SEMICOLON { SingleTypeImport(t) }
-    | IMPORT t=type_name POINT STAR SEMICOLON { TypeImportOnDemand(t) } (*TODO package or type names *)
-    | IMPORT STATIC t=type_name POINT IDENTIFIER SEMICOLON { SingleStaticImport(t) }
-    | IMPORT STATIC t=type_name POINT STAR SEMICOLON { StaticImportOnDemand(t) }
+    | IMPORT s=STATIC? i=import_name SEMICOLON { let (name, ondemand)=i in match (s, ondemand) with
+                                                                | (Some(), false) -> SingleStaticImport(name)
+                                                                | (None, true) -> TypeImportOnDemand(name)
+                                                                | (Some(), true) -> StaticImportOnDemand(name)
+                                                                | (None, false) -> SingleTypeImport(name) }
+import_name:
+    | i=qualified_name POINT STAR { (i,true) }
+    | i=qualified_name { (i,false) }
+(* Package declaration *)
 package_declaration:
     | PACKAGE p=qualified_name SEMICOLON { Package(p) }
+(* Type declarations *)
 type_declaration:
     | c=class_declaration { Class(c) }
     | i=interface_declaration { Interface(i) }
@@ -47,7 +52,4 @@ interface_modifier:
     | STATIC { Static }
     | STRICTFP { Strictfp }
 qualified_name:
-    | n=separated_nonempty_list(POINT, IDENTIFIER) { n }
-type_name: (* FIXME probably duplicate with qualified_name *)
-    | i=IDENTIFIER { i }
-    | t=type_name POINT i=IDENTIFIER { t^"."^i }
+    | n=separated_nonempty_list(POINT, IDENTIFIER) { QualifiedName(n) }

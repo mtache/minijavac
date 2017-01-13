@@ -1,12 +1,13 @@
-type qualified_name = string list
 
-type package = Package of qualified_name
+type name = SimpleName of string | QualifiedName of string list
 
 type import =
-    | SingleTypeImport of string
-    | TypeImportOnDemand of string
-    | SingleStaticImport of string
-    | StaticImportOnDemand of string
+    | SingleTypeImport of name
+    | TypeImportOnDemand of name
+    | SingleStaticImport of name
+    | StaticImportOnDemand of name
+
+type package = Package of name
 
 type modifier =
     | Public
@@ -27,15 +28,7 @@ type type_declaration =
 
 type ast = package option * import list * type_declaration list
 
-let rec print_qualified_name = function
-    | [] -> ()
-    | i::t -> print_string i;
-              print_qualified_name t
-
-let print_declaration = function
-    | Package(s) -> print_string "package"; print_qualified_name s
-    | _ -> ()
-
+(* Unused tyoes *)
 type expression = Expression of string
 
 type methodnode =
@@ -49,35 +42,45 @@ type classnode =
       name : string;
       methods : methodnode list;
     }
+(* END - Unused types *)
+
+(* Print functions *)
+let rec name_string = function
+    | QualifiedName(h::[]) -> h
+    | QualifiedName(h::t) -> h^"."^(name_string (QualifiedName(t)))
+
+let print_package = function
+    | Package(p) -> print_string ("package "^(name_string p)^"\n")
+    | _ -> ()
 
 let rec print_imports = function
     | [] -> ()
     | i::t -> begin match i with
-            | SingleTypeImport(s) -> print_string ("SingleTypeImport"^s^"\n")
-            | TypeImportOnDemand(s) -> print_string ("TypeImportOnDemand"^s^"\n")
-            | SingleStaticImport(s) -> print_string ("SingleStaticImport"^s^"\n")
-            | StaticImportOnDemand(s) -> print_string ("StaticImportOnDemand"^s^"\n")
+            | SingleTypeImport(i) -> print_string ("SingleTypeImport "^name_string i)
+            | TypeImportOnDemand(i) -> print_string ("TypeImportOnDemand "^name_string i)
+            | SingleStaticImport(i) -> print_string ("SingleStaticImport "^name_string i)
+            | StaticImportOnDemand(i) -> print_string ("StaticImportOnDemand "^name_string i)
             end;
             print_imports t
 
 let rec print_modifiers = function
     | [] -> ()
     | i::t -> begin match i with
-            | Public -> print_string "public"
-            | Protected -> print_string "protected"
-            | Private -> print_string "private"
-            | Abstract -> print_string "abstract"
-            | Static -> print_string "static"
-            | Final -> print_string "final"
-            | Strictfp -> print_string "strictfp"
+            | Public -> print_string "public "
+            | Protected -> print_string "protected "
+            | Private -> print_string "private "
+            | Abstract -> print_string "abstract "
+            | Static -> print_string "static "
+            | Final -> print_string "final "
+            | Strictfp -> print_string "strictfp "
             end;
             print_modifiers t
 
 let print_class = function
-    | (m,s) -> print_modifiers m; print_string "class"; print_string s
+    | (m,s) -> print_modifiers m; print_string "class "; print_string s; print_string "\n"
 
 let print_interface = function
-    | (m,s) -> print_modifiers m; print_string "interface"; print_string s
+    | (m,s) -> print_modifiers m; print_string "interface "; print_string s; print_string "\n"
 
 let rec print_types = function
     | [] -> ()
@@ -88,6 +91,6 @@ let rec print_types = function
             print_types t
 
 let print_ast = function
-    | (Some(p),i,t) -> print_declaration p; print_imports i; print_types t
-    | (None,i,t) -> (); print_imports i; print_types t
-    
+    | (Some(p),i,t) -> print_package p; print_imports i; print_types t
+    | (None,i,t) -> print_imports i; print_types t
+(* END - Print functions *)

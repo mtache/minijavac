@@ -4,10 +4,11 @@
 }
 
 let sub = '\x1A'
-let space = [' ' '\t' '\n']
+let space = [' ' '\t']
 
 rule read = parse
     | space+            { read lexbuf }
+    | '\n'              { Location.incr_line lexbuf; read lexbuf }
     | ';'               { SEMICOLON }
     | '*'               { STAR }
     | '.'               { POINT }
@@ -26,5 +27,5 @@ rule read = parse
     | "{" { RBRACKET }
     | "}" { LBRACKET }
     | ['a'-'z''A'-'Z']+ as s   { IDENTIFIER(s) }
-    | eof     { EOF }
+    | eof               { EOF }
     | _ { raise (SyntaxError ("Unexpected char: " ^ Lexing.lexeme lexbuf)) }

@@ -8,7 +8,7 @@
 %token <string> IDENTIFIER
 %type <package> package_declaration
 %type <import> import_declaration
-%type <name> qualified_name
+%type <name> name
 %start start
 %type <AST.ast> start
 %%
@@ -23,11 +23,11 @@ import_declaration:
                                                                 | (Some(), true) -> StaticImportOnDemand(name)
                                                                 | (None, false) -> SingleTypeImport(name) }
 import_name:
-    | i=terminated(terminated(qualified_name, POINT), STAR) { (i,true) }
-    | i=qualified_name { (i,false) }
+    | i=terminated(terminated(name, POINT), STAR) { (i,true) }
+    | i=name { (i,false) }
 (* Package declaration *)
 package_declaration:
-    | PACKAGE p=qualified_name SEMICOLON { Package(p) }
+    | PACKAGE p=name SEMICOLON { Package(p) }
 (* Type declarations *)
 type_declaration:
     | c=class_declaration { Class(c) }
@@ -50,9 +50,6 @@ class_modifier:
     | STRICTFP { Strictfp }
 interface_declaration:
     | i=class_modifier* INTERFACE n=IDENTIFIER RBRACKET LBRACKET { (i, n) }
-qualified_name:
-    | i=IDENTIFIER { QualifiedName([i]) }
-    | n=qualified_name POINT i=IDENTIFIER { match n with
-                                            | QualifiedName(h::t) -> QualifiedName(i::h::t)
-                                            | _ -> QualifiedName([])
-                                            }
+name:
+    | i=IDENTIFIER { Name([i]) }
+    | n=name POINT i=IDENTIFIER { match n with Name(h::t) -> Name(i::h::t) }

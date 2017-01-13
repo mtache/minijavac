@@ -1,4 +1,4 @@
-type name = SimpleName of string | QualifiedName of string list
+type name = Name of string list
 
 type import =
     | SingleTypeImport of name
@@ -49,20 +49,19 @@ let print_string_option = function
     | None -> print_string ""
 
 let rec name_string = function
-    | QualifiedName(h::[]) -> h
-    | QualifiedName(h::t) -> (name_string (QualifiedName(t)))^"."^h
+    | Name(h::[]) -> h
+    | Name(h::t) -> (name_string (Name(t)))^"."^h
 
 let print_package = function
-    | Package(p) -> print_string ("package "^(name_string p)^"\n")
-    | _ -> ()
+    Package(p) -> print_string ("package "^(name_string p)^"\n")
 
 let rec print_imports = function
     | [] -> ()
     | i::t -> begin match i with
-            | SingleTypeImport(i) -> print_string ("SingleTypeImport "^name_string i)
-            | TypeImportOnDemand(i) -> print_string ("TypeImportOnDemand "^name_string i)
-            | SingleStaticImport(i) -> print_string ("SingleStaticImport "^name_string i)
-            | StaticImportOnDemand(i) -> print_string ("StaticImportOnDemand "^name_string i)
+            | SingleTypeImport(i) -> print_string ("SingleTypeImport "^name_string i^"\n")
+            | TypeImportOnDemand(i) -> print_string ("TypeImportOnDemand "^name_string i^"\n")
+            | SingleStaticImport(i) -> print_string ("SingleStaticImport "^name_string i^"\n")
+            | StaticImportOnDemand(i) -> print_string ("StaticImportOnDemand "^name_string i^"\n")
             end;
             print_imports t
 
@@ -80,10 +79,10 @@ let rec print_modifiers = function
             print_modifiers t
 
 let print_class = function
-    | (m,n,s,i) -> print_modifiers m; print_string "class "; print_string n; print_string " extends "; print_string_option s; print_string " implements "; print_string_option i; print_string "\n"
+    (m,n,s,i) -> print_modifiers m; print_string "class "; print_string n; print_string " extends "; print_string_option s; print_string " implements "; print_string_option i; print_string "\n"
 
 let print_interface = function
-    | (m,s) -> print_modifiers m; print_string "interface "; print_string s; print_string "\n"
+    (m,s) -> print_modifiers m; print_string "interface "; print_string s; print_string "\n"
 
 let rec print_types = function
     | [] -> ()

@@ -23,7 +23,7 @@ import_declaration:
                                                                 | (Some(), true) -> StaticImportOnDemand(name)
                                                                 | (None, false) -> SingleTypeImport(name) }
 import_name:
-    | i=qualified_name POINT STAR { (i,true) }
+    | i=terminated(terminated(qualified_name, POINT), STAR) { (i,true) }
     | i=qualified_name { (i,false) }
 (* Package declaration *)
 package_declaration:
@@ -43,13 +43,10 @@ class_modifier:
     | FINAL { Final }
     | STRICTFP { Strictfp }
 interface_declaration:
-    | i=interface_modifier* INTERFACE n=IDENTIFIER RBRACKET LBRACKET { (i, n) }
-interface_modifier:
-    | PUBLIC { Public }
-    | PROTECTED { Protected }
-    | PRIVATE { Private }
-    | ABSTRACT { Abstract }
-    | STATIC { Static }
-    | STRICTFP { Strictfp }
+    | i=class_modifier* INTERFACE n=IDENTIFIER RBRACKET LBRACKET { (i, n) }
 qualified_name:
-    | n=separated_nonempty_list(POINT, IDENTIFIER) { QualifiedName(n) }
+    | i=IDENTIFIER { QualifiedName([i]) }
+    | n=qualified_name POINT i=IDENTIFIER { match n with
+                                            | QualifiedName(h::t) -> QualifiedName(i::h::t)
+                                            | _ -> QualifiedName([])
+                                            }

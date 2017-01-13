@@ -47,7 +47,7 @@ type classnode =
 (* Print functions *)
 let rec name_string = function
     | QualifiedName(h::[]) -> h
-    | QualifiedName(h::t) -> h^"."^(name_string (QualifiedName(t)))
+    | QualifiedName(h::t) -> (name_string (QualifiedName(t)))^"."^h
 
 let print_package = function
     | Package(p) -> print_string ("package "^(name_string p)^"\n")

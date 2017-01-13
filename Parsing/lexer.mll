@@ -26,6 +26,8 @@ rule read = parse
     | "interface" { INTERFACE }
     | "{" { RBRACKET }
     | "}" { LBRACKET }
+    | "extends" { EXTENDS }
+    | "implements" { IMPLEMENTS }
     | ['a'-'z''A'-'Z']+ as s   { IDENTIFIER(s) }
     | eof               { EOF }
     | _ { raise (SyntaxError ("Unexpected char: " ^ Lexing.lexeme lexbuf)) }

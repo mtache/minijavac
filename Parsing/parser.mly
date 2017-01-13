@@ -4,7 +4,7 @@
 %token PACKAGE EOF SEMICOLON IMPORT STAR POINT
 %token LBRACKET RBRACKET
 %token PUBLIC PROTECTED PRIVATE ABSTRACT STATIC FINAL STRICTFP
-%token CLASS INTERFACE
+%token CLASS INTERFACE EXTENDS IMPLEMENTS
 %token <string> IDENTIFIER
 %type <package> package_declaration
 %type <import> import_declaration
@@ -33,7 +33,13 @@ type_declaration:
     | c=class_declaration { Class(c) }
     | i=interface_declaration { Interface(i) }
 class_declaration:
-    | c=class_modifier* CLASS n=IDENTIFIER RBRACKET LBRACKET { (c, n) }
+    | c=class_modifier* CLASS n=IDENTIFIER e=extends_declaration? i=implements_declaration? RBRACKET LBRACKET { (c,n,e,i) }
+extends_declaration:
+    | p=pair(EXTENDS, IDENTIFIER) { match p with 
+                                        | (e,i) -> i }
+implements_declaration:
+    | p=pair(IMPLEMENTS, IDENTIFIER) { match p with 
+                                        | (e,i) -> i }
 class_modifier:
     | PUBLIC { Public }
     | PROTECTED { Protected }

@@ -1,4 +1,3 @@
-
 type name = SimpleName of string | QualifiedName of string list
 
 type import =
@@ -18,7 +17,7 @@ type modifier =
     | Final
     | Strictfp
 
-type class_declaration = modifier list * string
+type class_declaration = modifier list * string * string option * string option
 
 type interface_declaration = modifier list * string
 
@@ -45,6 +44,10 @@ type classnode =
 (* END - Unused types *)
 
 (* Print functions *)
+let print_string_option = function
+    | Some(s) -> print_string s
+    | None -> print_string ""
+
 let rec name_string = function
     | QualifiedName(h::[]) -> h
     | QualifiedName(h::t) -> (name_string (QualifiedName(t)))^"."^h
@@ -77,7 +80,7 @@ let rec print_modifiers = function
             print_modifiers t
 
 let print_class = function
-    | (m,s) -> print_modifiers m; print_string "class "; print_string s; print_string "\n"
+    | (m,n,s,i) -> print_modifiers m; print_string "class "; print_string n; print_string " extends "; print_string_option s; print_string " implements "; print_string_option i; print_string "\n"
 
 let print_interface = function
     | (m,s) -> print_modifiers m; print_string "interface "; print_string s; print_string "\n"

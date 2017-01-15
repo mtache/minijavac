@@ -34,8 +34,19 @@ rule read = parse
     | "interface"                   { INTERFACE }
     | "{"                           { RBRACKET }
     | "}"                           { LBRACKET }
+    | '('                           { RIGHTP }
+    | ')'                           { LEFTP }
     | "extends"                     { EXTENDS }
     | "implements"                  { IMPLEMENTS }
+    | "byte"                        { BYTE }
+    | "short"                       { SHORT }
+    | "int"                         { INT }
+    | "long"                        { LONG }
+    | "char"                        { CHAR }
+    | "float"                       { FLOAT }
+    | "double"                      { DOUBLE }
+    | "void"                        { VOID }
+    | "byte"                        { BYTE }
     | identifier as s               { IDENTIFIER(s) }
     | eof                           { EOF }
     | _                             { raise (SyntaxError ("Unexpected char: " ^ Lexing.lexeme lexbuf ^"\n")) }

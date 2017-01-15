@@ -37,6 +37,30 @@ rule read = parse
     | "abstract"                    { ABSTRACT }
     | "static"                      { STATIC }
 
+
+
+        | "if"          { IF }
+        | "then"        { THEN }
+        | "else"        { ELSE }
+        | "{"           { LBRA }
+        | "}"           { RBRA }
+        | "for"         { FOR }
+        | "while"       { WHILE }
+
+    | "switch"      { SWITCH }
+    | "case"        { CASE }
+    | "default"     { DEFAULT }
+    | "break"       { BREAK}
+    | "false"       { FALSE }
+    | "true"        { TRUE }
+    | "float"       { IDFLOAT }
+    | "int"         { IDINT }
+    | "byte"        { IDBYTE }
+    | "short"       { IDSHORT }
+    | "long"        { IDLONG }
+    | "char"        { IDCHAR }
+    | "double"      { IDDOUBLE }
+    | "boolean"     { IDBOOLEAN }
     | "final"                       { FINAL }
     | "strictfp"                    { STRICTFP }
     | "class"                       { CLASS }
@@ -86,11 +110,13 @@ rule read = parse
     | ">>"  {RSHIFT}
     | ">>>"  {ZFRSHIFT}
 
+    | "("           { LPAR }
+    | ")"           { RPAR }
+
     | "++"        {INCREMENT}
     | "--"        {DECREMENT}
     | "!"       {NEGATION}
     | "~"       {BCOMPLEMENT}
-
 
     | eof                           { EOF }
     | _                             { raise (SyntaxError ("Unexpected char: " ^ Lexing.lexeme lexbuf ^"\n")) }

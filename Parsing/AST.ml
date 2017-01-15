@@ -39,21 +39,19 @@ type interfacenode =
         (*methods : methodnode list;*)
     }
 
-type types = 
+type types =
     | Class of classnode
     | Interface of interfacenode
 
-(* ROOT *)
-type ast = package option * import list * types list
 
 (* Unused tyoes *)
-type expression = Expression of string
+(* type expression = Expression of string
 
 type methodnode =
     {
       name : string;
       body : expression list;
-    }
+    } *)
 (* END - Unused types *)
 
 (* Expressions *)
@@ -111,6 +109,11 @@ and statement =
 
   type expr =
   	| Statement of statement
+
+    (* ROOT *)
+  type ast =
+    | Formule of package option * import list * types list
+    | Expression of expr list
 
 
 (* type ourast = expr list *)
@@ -279,6 +282,7 @@ let rec print_types = function
             print_types t
 
 let print_ast = function
-    | (Some(p),i,t) -> print_package p; print_imports i; print_types t
-    | (None,i,t) -> print_imports i; print_types t
+    | Formule (Some(p),i,t) -> print_package p; print_imports i; print_types t
+    | Formule (None,i,t) -> print_imports i; print_types t
+    | Expression (i) -> print_string (print_expression i)
 (* END - Print functions *)

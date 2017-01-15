@@ -16,7 +16,7 @@
 %token ASSERT IF FOR WHILE DO TRY SWITCH  CONTINUE   CASE DEFAULT COLON
 
 /*infix operators */
-%token OR  AND BOR BXOR BAND EQUAL NOTEQUAL LESS GREATER LESSEQUAL GREATEREAQUAL LSHIFT RSHIFT ZFRSHIFT
+%token OR  AND BOR BXOR BAND EQUAL NOTEQUAL LESS GREATER LESSEQUAL GREATEREAQUAL LSHIFT RSHIFT ZFRSHIFT BREAK
 
 %token INSTANCEOF NEW
 %token  INCREMENT DECREMENT NEGATION BCOMPLEMENT
@@ -45,8 +45,8 @@
 %start start
 %%
 start:
-    | p=package_declaration? i=import_declaration* t=type_declaration* EOF { (p, i, t) }
-
+    | p=package_declaration? i=import_declaration* t=type_declaration* EOF { Formule (p, i, t) }
+    | e = expr * EOF { Expression (e)}
 (* Import declarations *)
 import_declaration:
     | IMPORT s=STATIC? i=import_name SEMICOLON { let (name, ondemand)=i in match (s, ondemand) with
@@ -74,10 +74,10 @@ identifier_list:
     | i=IDENTIFIER { [i] }
     | a=identifier_list COMMA i=IDENTIFIER { a@[i] }
 extends_declaration:
-    | p=pair(EXTENDS, identifier_list) { match p with 
+    | p=pair(EXTENDS, identifier_list) { match p with
                                         | (e,i) -> i }
 implements_declaration:
-    | p=pair(IMPLEMENTS, identifier_list) { match p with 
+    | p=pair(IMPLEMENTS, identifier_list) { match p with
                                         | (e,i) -> i }
 class_modifier:
     | PUBLIC { Public }
@@ -101,11 +101,43 @@ expr:
 
   statement:
   | d=declaration {d}
+  | i=ifStatement {i}
+  | f=forStatement {f}
+  | w=whileStatement {w}
+  | s=switchStatement {s}
 
   declaration :
   | i=basicType id=IDENTIFIER EQ o=operation SEMICOLON { Declaration(i,id,Some(o))}
   | i=basicType id=IDENTIFIER SEMICOLON                  { Declaration(i,id, None)}
 
+
+  switchStatement:
+  	| SWITCH LPAR op=operation RPAR LBRA b=switch_case_group RBRA
+  		{ SwitchStatement(Switch(op, b))}
+
+  switch_case_group:
+  	| s=switch_case {[s]}
+  	| s=switch_case b=switch_case_group {s::b}
+
+  switch_case:
+  	| CASE op=operation COLON s=statement BREAK SEMICOLON {Normal_case(op,s)}
+  	| DEFAULT COLON s=statement 						  {Default_case(s)}
+
+
+  ifStatement:
+    | IF LPAR op=operation RPAR LBRA e=statement RBRA ELSE LBRA e2=statement RBRA
+              { IfStatement(IfThenElse(op,e,e2)) }
+    | IF LPAR op=operation RPAR LBRA e=statement RBRA
+              { IfStatement(IfThen(op,e)) }
+
+  whileStatement:
+  | WHILE LPAR op=operation RPAR LBRA s = statement RBRA { While(op, s) }
+  | DO LBRA s = statement RBRA WHILE LPAR op=operation RPAR  SEMICOLON { DoWhile(op, s) }
+
+
+  forStatement:
+    | FOR LPAR forinit=statement condition=operation SEMICOLON forupdate=statement RPAR LBRA action=statement RBRA
+              { ForStatement(BasicFor(Some(forinit),Some(condition),Some(forupdate),Some(action)))}
 
   operation:
     | TRUE
@@ -169,8 +201,6 @@ assignment_operator:
   | SELFLEFTSHIFT {"<<="}
   | SELFRIGHTSHIFT {">>="}
   | USELFRIGHTSHIFT  {">>>="}
-
-
 
   const:
     | i=INT {Int i}

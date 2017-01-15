@@ -38,7 +38,7 @@ rule read = parse
     | "implements"                  { IMPLEMENTS }
     | identifier as s               { IDENTIFIER(s) }
     | eof                           { EOF }
-    | _                             { raise (SyntaxError ("Unexpected char: " ^ Lexing.lexeme lexbuf ^'\n')) }
+    | _                             { raise (SyntaxError ("Unexpected char: " ^ Lexing.lexeme lexbuf ^"\n")) }
 
 and blockComment = parse
     | endComments { read lexbuf }

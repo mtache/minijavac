@@ -1,7 +1,8 @@
 %{
     open AST
+    exception ParserError of string
 %}
-%token PACKAGE EOF SEMICOLON IMPORT STAR POINT
+%token PACKAGE EOF SEMICOLON IMPORT STAR POINT COMMA
 %token LBRACKET RBRACKET
 %token PUBLIC PROTECTED PRIVATE ABSTRACT STATIC FINAL STRICTFP
 %token CLASS INTERFACE EXTENDS IMPLEMENTS
@@ -35,12 +36,19 @@ type_declaration:
     | c=class_declaration { Class(c) }
     | i=interface_declaration { Interface(i) }
 class_declaration:
-    | m=class_modifier* CLASS n=IDENTIFIER e=extends_declaration? i=implements_declaration? RBRACKET LBRACKET { { cmodifiers=m; cname=n; cextends=e; cimplements=i } }
+    | m=class_modifier* CLASS n=IDENTIFIER e=extends_declaration? i=implements_declaration? RBRACKET LBRACKET {
+        match e with
+            | Some([h]) -> { cmodifiers=m; cname=n; cextends=Some(h); cimplements=i }
+            | None -> { cmodifiers=m; cname=n; cextends=None; cimplements=i }
+            | _ -> raise (ParserError ("Multiple extends for the class " ^ n ^ "\n")) }
+identifier_list:
+    | i=IDENTIFIER { [i] }
+    | a=identifier_list COMMA i=IDENTIFIER { a@[i] }
 extends_declaration:
-    | p=pair(EXTENDS, IDENTIFIER) { match p with 
+    | p=pair(EXTENDS, identifier_list) { match p with 
                                         | (e,i) -> i }
 implements_declaration:
-    | p=pair(IMPLEMENTS, IDENTIFIER) { match p with 
+    | p=pair(IMPLEMENTS, identifier_list) { match p with 
                                         | (e,i) -> i }
 class_modifier:
     | PUBLIC { Public }

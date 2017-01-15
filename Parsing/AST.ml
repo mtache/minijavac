@@ -25,7 +25,7 @@ type classnode =
         cmodifiers : modifier list;
         cname : string; (* Use name type ? *)
         cextends : string option; (* TODO use classnode instead *)
-        cimplements : string option; (* TODO use interfacenode instead *)
+        cimplements : string list option; (* TODO use interfacenode instead *)
         (*methods : methodnode list;*)
     }
 
@@ -33,7 +33,7 @@ type interfacenode =
     {
         imodifiers : modifier list;
         iname : string; (* Use name type ? *)
-        iextends : string option; (* TODO use interfacenode instead *)
+        iextends : string list option; (* TODO use interfacenode instead *)
         (*methods : methodnode list;*)
     }
 
@@ -55,9 +55,19 @@ type methodnode =
 (* END - Unused types *)
 
 (* Print functions *)
-let string_option s p = match s with
+let option_string s p = match s with
     | Some(s) -> p^s
     | None -> ""
+
+let rec extends_string = function
+    | None -> ""
+    | Some(h::[]) -> "extends " ^ h
+    | Some(h::t) -> h ^ ", " ^ extends_string (Some(t))
+
+let rec implements_string = function
+    | None -> ""
+    | Some(h::[]) -> "implements " ^ h
+    | Some(h::t) -> h ^ ", " ^ extends_string (Some(t))
 
 let rec name_string = function
     | Name(h::[]) -> h
@@ -90,10 +100,10 @@ let rec print_modifiers = function
             print_modifiers t
 
 let print_class c =
-    print_modifiers c.cmodifiers; print_string ("class "^c.cname^(string_option c.cextends " extends ")^(string_option c.cimplements " implements ")^"\n")
+    print_modifiers c.cmodifiers; print_string ("class "^c.cname^(option_string c.cextends " extends ")^(implements_string c.cimplements)^"\n")
 
 let print_interface i =
-    print_modifiers i.imodifiers; print_string ("interface "^i.iname^(string_option i.iextends " extends ")^"\n")
+    print_modifiers i.imodifiers; print_string ("interface "^i.iname^(extends_string i.iextends)^"\n")
 
 let rec print_types = function
     | [] -> ()

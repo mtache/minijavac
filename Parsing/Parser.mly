@@ -8,7 +8,7 @@
 %token CLASS INTERFACE EXTENDS IMPLEMENTS
 
 
-%token  PLUS MINUS DIV TIMES MOD  FALSE TRUE IDFLOAT IDINT IDBYTE IDSHORT IDLONG IDCHAR IDDOUBLE IDBOOLEAN THEN ELSE LBRA RBRA  LPAR RPAR QUESTION
+%token  PLUS MINUS DIV TIMES MOD  FALSE TRUE IDFLOAT IDINT IDBYTE IDSHORT IDLONG IDCHAR IDDOUBLE IDBOOLEAN THEN ELSE LPAR RPAR QUESTION
 /*assignment Operators*/
 %token EQ SELFADD SELFSUB SELFMUL SELFDIV SELFAND SELFOR SELFXOR SELFMOD SELFLEFTSHIFT SELFRIGHTSHIFT USELFRIGHTSHIFT
 
@@ -112,7 +112,7 @@ expr:
 
 
   switchStatement:
-  	| SWITCH LPAR op=operation RPAR LBRA b=switch_case_group RBRA
+  	| SWITCH LPAR op=operation RPAR LBRACKET b=switch_case_group RBRACKET
   		{ SwitchStatement(Switch(op, b))}
 
   switch_case_group:
@@ -125,18 +125,18 @@ expr:
 
 
   ifStatement:
-    | IF LPAR op=operation RPAR LBRA e=statement RBRA ELSE LBRA e2=statement RBRA
+    | IF LPAR op=operation RPAR LBRACKET e=statement RBRACKET ELSE LBRACKET e2=statement RBRACKET
               { IfStatement(IfThenElse(op,e,e2)) }
-    | IF LPAR op=operation RPAR LBRA e=statement RBRA
+    | IF LPAR op=operation RPAR LBRACKET e=statement RBRACKET
               { IfStatement(IfThen(op,e)) }
 
   whileStatement:
-  | WHILE LPAR op=operation RPAR LBRA s = statement RBRA { While(op, s) }
-  | DO LBRA s = statement RBRA WHILE LPAR op=operation RPAR  SEMICOLON { DoWhile(op, s) }
+  | WHILE LPAR op=operation RPAR LBRACKET s = statement RBRACKET { While(op, s) }
+  | DO LBRACKET s = statement RBRACKET WHILE LPAR op=operation RPAR  SEMICOLON { DoWhile(op, s) }
 
 
   forStatement:
-    | FOR LPAR forinit=statement condition=operation SEMICOLON forupdate=statement RPAR LBRA action=statement RBRA
+    | FOR LPAR forinit=statement condition=operation SEMICOLON forupdate=statement RPAR LBRACKET action=statement RBRACKET
               { ForStatement(BasicFor(Some(forinit),Some(condition),Some(forupdate),Some(action)))}
 
   operation:

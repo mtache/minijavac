@@ -36,14 +36,13 @@ rule read = parse
     | "private"                     { PRIVATE }
     | "abstract"                    { ABSTRACT }
     | "static"                      { STATIC }
-
+    | "do"      {DO}
 
 
         | "if"          { IF }
         | "then"        { THEN }
         | "else"        { ELSE }
-        | "{"           { LBRA }
-        | "}"           { RBRA }
+
         | "for"         { FOR }
         | "while"       { WHILE }
 
@@ -65,19 +64,18 @@ rule read = parse
     | "strictfp"                    { STRICTFP }
     | "class"                       { CLASS }
     | "interface"                   { INTERFACE }
-    | "{"                           { RBRACKET }
-    | "}"                           { LBRACKET }
+    | "{"                           { LBRACKET }
+    | "}"                           { RBRACKET }
     | "extends"                     { EXTENDS }
     | "implements"                  { IMPLEMENTS }
     | identifier as s               { IDENTIFIER(s) }
 
-    | ";"           {SEMICOLON}
+
     | "+"           { PLUS }
     | "-"           { MINUS }
     | "/"           { DIV }
     | "*"           { TIMES }
     | "%"           { MOD }
-    | ";"           { SEMICOLON }
     | ":"           { COLON }
     | "?"           { QUESTION }
 

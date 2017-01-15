@@ -6,9 +6,14 @@
 let sub = '\x1A'
 let space = [' ' '\t']
 let identifier = ['a'-'z' 'A'-'Z' '_' '$']['a'-'z' 'A'-'Z' '0'-'9' '_' '$']*
+let beginComments = "/*"
+let endComments = "*/"
+let lineComments = "//"
 
 rule read = parse
     | space+                        { read lexbuf }
+    | beginComments { blockComment lexbuf }
+    | lineComments { lineComment lexbuf }
     | '\n'                          { Location.incr_line lexbuf; read lexbuf }
     | ';'                           { SEMICOLON }
     | '*'                           { STAR }
@@ -32,3 +37,11 @@ rule read = parse
     | identifier as s  { IDENTIFIER(s) }
     | eof                           { EOF }
     | _                             { raise (SyntaxError ("Unexpected char: " ^ Lexing.lexeme lexbuf)) }
+
+and blockComment = parse
+    | endComments { read lexbuf }
+    | _ { blockComment lexbuf }
+
+and lineComment = parse
+    | '\n' { read lexbuf }
+    | _ { lineComment lexbuf }

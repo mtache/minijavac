@@ -16,6 +16,10 @@ let parse_with_error lexbuf =
     print_string ("Parser error\n");
     Location.print (Location.curr lexbuf);
     exit (-1)
+  | AST.DeclarationError msg -> (* Find better name *)
+    print_string (msg);
+    Location.print (Location.curr lexbuf);
+    exit (-1)
   | Failure msg ->
     print_string (msg);
     Location.print (Location.curr lexbuf);

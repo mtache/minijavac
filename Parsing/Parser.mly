@@ -1,6 +1,5 @@
 %{
     open AST
-    exception DeclarationError of string
 
 %}
 %token PACKAGE EOF SEMICOLON IMPORT STAR POINT COMMA

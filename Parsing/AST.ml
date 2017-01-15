@@ -1,3 +1,5 @@
+exception DeclarationError of string
+
 type name = Name of string list (*
                                  * Can either be : qualified name, the head is the string after the last point;
                                  * a simple name as a list with a single string.
@@ -62,7 +64,7 @@ let option_string s p = match s with
 let rec extends_string = function
     | None -> ""
     | Some(h::[]) -> "extends " ^ h
-    | Some(h::t) -> h ^ ", " ^ extends_string (Some(t))
+    | Some(h::t) -> extends_string (Some(t)) ^ ", " ^ h
 
 let rec implements_string = function
     | None -> ""
@@ -103,7 +105,7 @@ let print_class c =
     print_modifiers c.cmodifiers; print_string ("class "^c.cname^(option_string c.cextends " extends ")^(implements_string c.cimplements)^"\n")
 
 let print_interface i =
-    print_modifiers i.imodifiers; print_string ("interface "^i.iname^(extends_string i.iextends)^"\n")
+    print_modifiers i.imodifiers; print_string ("interface "^i.iname^" "^(extends_string i.iextends)^"\n")
 
 let rec print_types = function
     | [] -> ()

@@ -1,7 +1,7 @@
 {
     open Parser
     exception SyntaxError of string
-    exception ParserError of string
+
 }
 
 let sub = '\x1A'

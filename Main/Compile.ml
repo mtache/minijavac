@@ -4,7 +4,7 @@ open Lexer
 open Location
 open Lexing
 open AST
-exception ParserError of string
+
 
 let parse_with_error lexbuf =
   try Parser.start Lexer.read lexbuf with
@@ -12,11 +12,11 @@ let parse_with_error lexbuf =
     print_string (msg);
     Location.print (Location.curr lexbuf);
     exit (-1)
-  | Parser.Error ->
+  | Error ->
     print_string ("Parser error\n");
     Location.print (Location.curr lexbuf);
     exit (-1)
-  | ParserError msg -> (* Find better name *)
+  | AST.DeclarationError msg -> (* Find better name *)
     print_string (msg);
     Location.print (Location.curr lexbuf);
     exit (-1)

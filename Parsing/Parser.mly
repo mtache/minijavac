@@ -1,6 +1,6 @@
 %{
     open AST
-    exception ParserError of string
+
 %}
 %token PACKAGE EOF SEMICOLON IMPORT STAR POINT COMMA
 %token LBRACKET RBRACKET LEFTP RIGHTP
@@ -46,7 +46,7 @@ class_declaration:
         match e with
             | Some([h]) -> { cmodifiers=m; cname=n; cextends=Some(h); cimplements=i }
             | None -> { cmodifiers=m; cname=n; cextends=None; cimplements=i }
-            | _ -> raise (ParserError ("Multiple extends for the class " ^ n ^ "\n")) }
+            | _ -> raise (DeclarationError ("Multiple extends for the class " ^ n ^ "\n")) }
 identifier_list:
     | i=IDENTIFIER { [i] }
     | a=identifier_list COMMA i=IDENTIFIER { a@[i] }

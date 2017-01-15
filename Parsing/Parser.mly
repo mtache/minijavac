@@ -6,14 +6,43 @@
 %token LBRACKET RBRACKET
 %token PUBLIC PROTECTED PRIVATE ABSTRACT STATIC FINAL STRICTFP
 %token CLASS INTERFACE EXTENDS IMPLEMENTS
+
+
+%token  PLUS MINUS DIV TIMES MOD  FALSE TRUE IDFLOAT IDINT IDBYTE IDSHORT IDLONG IDCHAR IDDOUBLE IDBOOLEAN THEN ELSE LBRA RBRA  LPAR RPAR QUESTION
+/*assignment Operators*/
+%token EQ SELFADD SELFSUB SELFMUL SELFDIV SELFAND SELFOR SELFXOR SELFMOD SELFLEFTSHIFT SELFRIGHTSHIFT USELFRIGHTSHIFT
+
+/* statements */
+%token ASSERT IF FOR WHILE DO TRY SWITCH  CONTINUE   CASE DEFAULT COLON
+
+/*infix operators */
+%token OR  AND BOR BXOR BAND EQUAL NOTEQUAL LESS GREATER LESSEQUAL GREATEREAQUAL LSHIFT RSHIFT ZFRSHIFT
+
+%token INSTANCEOF NEW
+%token  INCREMENT DECREMENT NEGATION BCOMPLEMENT
+
+
+%token <float> FLOAT
+%token <int> INT
+%token <string> STRING
 %token <string> IDENTIFIER
 %type <package> package_declaration
 %type <import> import_declaration
 %type <classnode> class_declaration
 %type <modifier> class_modifier
 %type <name> name
-%start start
 %type <AST.ast> start
+%type < AST.expr > expr
+%type < AST.statement > statement
+%type  <AST.operation > operation
+%type < AST.const > const
+
+
+%left PLUS MINUS
+%left TIMES DIV MOD
+%right UMINUS UPLUS
+
+%start start
 %%
 start:
     | p=package_declaration? i=import_declaration* t=type_declaration* EOF { (p, i, t) }
@@ -63,3 +92,104 @@ interface_declaration:
 name:
     | i=IDENTIFIER { Name([i]) }
     | n=name POINT i=IDENTIFIER { match n with Name(h::t) -> Name(i::h::t) }
+
+/*EXPRESSIONS*/
+
+
+expr:
+	| s=statement 		{ Statement(s)}
+
+  statement:
+  | d=declaration {d}
+
+  declaration :
+  | i=basicType id=IDENTIFIER EQ o=operation SEMICOLON { Declaration(i,id,Some(o))}
+  | i=basicType id=IDENTIFIER SEMICOLON                  { Declaration(i,id, None)}
+
+
+  operation:
+    | TRUE
+        { Bool true}
+    | FALSE
+        { Bool false}
+    | LPAR e=operation RPAR
+        { e }
+    | MINUS e=operation %prec UMINUS
+        { Unop(Uminus,e)}
+    | PLUS e=operation %prec UPLUS
+        { Unop(Uplus,e)}
+    | e1=operation o=bop e2=operation
+        { Binop(o,e1,e2)}
+    | id=IDENTIFIER
+        { Var id }
+    | c=const
+        {Const c}
+
+infix_operator:
+|  OR {"||"}
+|  AND {"&&"}
+|  BOR {"|"}
+|  BXOR {"^"}
+|  BAND {"&"}
+|  EQUAL {"=="}
+|  NOTEQUAL {"!="}
+|  LESS {"<"}
+|  GREATER {">"}
+|  LESSEQUAL {"<="}
+|  GREATEREAQUAL {">="}
+|  LSHIFT {"<<"}
+|  RSHIFT {">>"}
+|  ZFRSHIFT {">>>"}
+|  PLUS {"+"}
+|  MINUS {"-"}
+|  TIMES {"*"}
+|  DIV {"/"}
+|  MOD {"%"}
+
+
+prefix_operator:
+  | NEGATION {"!"}
+  | BCOMPLEMENT {"~"}
+
+postfix_operator:
+  | INCREMENT {"++"}
+  | DECREMENT   {"--"}
+
+
+assignment_operator:
+  | EQ {"="}
+  | SELFADD {"+="}
+  | SELFSUB {"-="}
+  | SELFMUL {"*="}
+  | SELFDIV {"/="}
+  | SELFAND {"&="}
+  | SELFOR  {"|="}
+  | SELFXOR {"^="}
+  | SELFMOD {"%="}
+  | SELFLEFTSHIFT {"<<="}
+  | SELFRIGHTSHIFT {">>="}
+  | USELFRIGHTSHIFT  {">>>="}
+
+
+
+  const:
+    | i=INT {Int i}
+    | f=FLOAT {Float f}
+
+
+  %inline bop:
+    | MINUS     { Bsub }
+    | PLUS      { Badd }
+    | TIMES     { Bmul }
+    | DIV       { Bdiv }
+    | MOD       { Bmod }
+
+  %inline basicType:
+    | IDBYTE    { ByteType }
+    | IDSHORT   { ShortType }
+    | IDINT     { IntType }
+    | IDLONG    { LongType }
+    | IDCHAR    { CharType }
+    | IDFLOAT   { FloatType }
+    | IDDOUBLE   { DoubleType }
+    | IDBOOLEAN   { BooleanType }

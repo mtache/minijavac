@@ -8,6 +8,8 @@
 %token <string> IDENTIFIER
 %type <package> package_declaration
 %type <import> import_declaration
+%type <classnode> class_declaration
+%type <modifier> class_modifier
 %type <name> name
 %start start
 %type <AST.ast> start
@@ -33,7 +35,7 @@ type_declaration:
     | c=class_declaration { Class(c) }
     | i=interface_declaration { Interface(i) }
 class_declaration:
-    | c=class_modifier* CLASS n=IDENTIFIER e=extends_declaration? i=implements_declaration? RBRACKET LBRACKET { (c,n,e,i) }
+    | m=class_modifier* CLASS n=IDENTIFIER e=extends_declaration? i=implements_declaration? RBRACKET LBRACKET { { cmodifiers=m; cname=n; cextends=e; cimplements=i } }
 extends_declaration:
     | p=pair(EXTENDS, IDENTIFIER) { match p with 
                                         | (e,i) -> i }
@@ -49,7 +51,7 @@ class_modifier:
     | FINAL { Final }
     | STRICTFP { Strictfp }
 interface_declaration:
-    | i=class_modifier* INTERFACE n=IDENTIFIER RBRACKET LBRACKET { (i, n) }
+    | m=class_modifier* INTERFACE n=IDENTIFIER e=extends_declaration? RBRACKET LBRACKET { { imodifiers=m; iname=n; iextends=e } }
 name:
     | i=IDENTIFIER { Name([i]) }
     | n=name POINT i=IDENTIFIER { match n with Name(h::t) -> Name(i::h::t) }

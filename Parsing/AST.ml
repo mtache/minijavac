@@ -1,4 +1,7 @@
-type name = Name of string list
+type name = Name of string list (*
+                                 * Can either be : qualified name, the head is the string after the last point;
+                                 * a simple name as a list with a single string.
+                                 *)
 
 type import =
     | SingleTypeImport of name
@@ -17,15 +20,29 @@ type modifier =
     | Final
     | Strictfp
 
-type class_declaration = modifier list * string * string option * string option
+type classnode =
+    {
+        cmodifiers : modifier list;
+        cname : string; (* Use name type ? *)
+        cextends : string option; (* TODO use classnode instead *)
+        cimplements : string option; (* TODO use interfacenode instead *)
+        (*methods : methodnode list;*)
+    }
 
-type interface_declaration = modifier list * string
+type interfacenode =
+    {
+        imodifiers : modifier list;
+        iname : string; (* Use name type ? *)
+        iextends : string option; (* TODO use interfacenode instead *)
+        (*methods : methodnode list;*)
+    }
 
-type type_declaration = 
-    | Class of class_declaration
-    | Interface of interface_declaration
+type types = 
+    | Class of classnode
+    | Interface of interfacenode
 
-type ast = package option * import list * type_declaration list
+(* ROOT *)
+type ast = package option * import list * types list
 
 (* Unused tyoes *)
 type expression = Expression of string
@@ -33,20 +50,14 @@ type expression = Expression of string
 type methodnode =
     {
       name : string;
-      body : expression;
-    }
-
-type classnode =
-    {
-      name : string;
-      methods : methodnode list;
+      body : expression list;
     }
 (* END - Unused types *)
 
 (* Print functions *)
-let print_string_option = function
-    | Some(s) -> print_string s
-    | None -> print_string ""
+let string_option s p = match s with
+    | Some(s) -> p^s
+    | None -> ""
 
 let rec name_string = function
     | Name(h::[]) -> h
@@ -78,11 +89,11 @@ let rec print_modifiers = function
             end;
             print_modifiers t
 
-let print_class = function
-    (m,n,s,i) -> print_modifiers m; print_string "class "; print_string n; print_string " extends "; print_string_option s; print_string " implements "; print_string_option i; print_string "\n"
+let print_class c =
+    print_modifiers c.cmodifiers; print_string ("class "^c.cname^(string_option c.cextends " extends ")^(string_option c.cimplements " implements ")^"\n")
 
-let print_interface = function
-    (m,s) -> print_modifiers m; print_string "interface "; print_string s; print_string "\n"
+let print_interface i =
+    print_modifiers i.imodifiers; print_string ("interface "^i.iname^(string_option i.iextends " extends ")^"\n")
 
 let rec print_types = function
     | [] -> ()

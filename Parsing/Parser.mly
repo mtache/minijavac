@@ -113,6 +113,7 @@ expr:
   declaration :
   | i=basicType id=IDENTIFIER EQ o=operation SEMICOLON { Declaration(i,id,Some(o))}
   | i=basicType id=IDENTIFIER SEMICOLON                  { Declaration(i,id, None)}
+  | i=basicType id=IDENTIFIER EQ o=operation {Declaration(i,id,Some(o))}
 
 
   switchStatement:

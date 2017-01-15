@@ -36,15 +36,15 @@ rule read = parse
     | "private"                     { PRIVATE }
     | "abstract"                    { ABSTRACT }
     | "static"                      { STATIC }
-    | "do"      {DO}
+    | "do"                          {DO}
 
 
-        | "if"          { IF }
-        | "then"        { THEN }
-        | "else"        { ELSE }
+    | "if"          { IF }
+    | "then"        { THEN }
+    | "else"        { ELSE }
 
-        | "for"         { FOR }
-        | "while"       { WHILE }
+    | "for"         { FOR }
+    | "while"       { WHILE }
 
     | "switch"      { SWITCH }
     | "case"        { CASE }
@@ -93,28 +93,28 @@ rule read = parse
     | ">>>="        {USELFRIGHTSHIFT}
 
 
-    | "||"  {OR}
-    | "&&"  {AND}
-    | "|"  {BOR}
-    | "^"  {BXOR}
-    | "&"  {BAND}
-    | "=="  {EQUAL}
-    | "!="  {NOTEQUAL}
-    | "<"  {LESS}
-    | ">"  {GREATER}
-    | "<="  {LESSEQUAL}
-    | ">="  {GREATEREAQUAL}
-    | "<<"  {LSHIFT}
-    | ">>"  {RSHIFT}
-    | ">>>"  {ZFRSHIFT}
+    | "||"          {OR}
+    | "&&"          {AND}
+    | "|"           {BOR}
+    | "^"           {BXOR}
+    | "&"           {BAND}
+    | "=="          {EQUAL}
+    | "!="          {NOTEQUAL}
+    | "<"           {LESS}
+    | ">"           {GREATER}
+    | "<="          {LESSEQUAL}
+    | ">="          {GREATEREAQUAL}
+    | "<<"          {LSHIFT}
+    | ">>"          {RSHIFT}
+    | ">>>"         {ZFRSHIFT}
 
     | "("           { LPAR }
     | ")"           { RPAR }
 
-    | "++"        {INCREMENT}
-    | "--"        {DECREMENT}
-    | "!"       {NEGATION}
-    | "~"       {BCOMPLEMENT}
+    | "++"          {INCREMENT}
+    | "--"          {DECREMENT}
+    | "!"           {NEGATION}
+    | "~"         {BCOMPLEMENT}
 
     | eof                           { EOF }
     | _                             { raise (SyntaxError ("Unexpected char: " ^ Lexing.lexeme lexbuf ^"\n")) }

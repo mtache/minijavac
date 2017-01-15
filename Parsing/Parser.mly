@@ -105,6 +105,10 @@ expr:
   | f=forStatement {f}
   | w=whileStatement {w}
   | s=switchStatement {s}
+  | o=Operation SEMICOLON {o}
+
+  Operation:
+  | o=operation { Operation (o)}
 
   declaration :
   | i=basicType id=IDENTIFIER EQ o=operation SEMICOLON { Declaration(i,id,Some(o))}
@@ -140,22 +144,15 @@ expr:
               { ForStatement(BasicFor(Some(forinit),Some(condition),Some(forupdate),Some(action)))}
 
   operation:
-    | TRUE
-        { Bool true}
-    | FALSE
-        { Bool false}
-    | LPAR e=operation RPAR
-        { e }
-    | MINUS e=operation %prec UMINUS
-        { Unop(Uminus,e)}
-    | PLUS e=operation %prec UPLUS
-        { Unop(Uplus,e)}
-    | e1=operation o=bop e2=operation
-        { Binop(o,e1,e2)}
-    | id=IDENTIFIER
-        { Var id }
-    | c=const
-        {Const c}
+    | TRUE                                { Bool true}
+    | FALSE                               { Bool false}
+    | LPAR e=operation RPAR               { e }
+    | MINUS e=operation %prec UMINUS      { Unop(Uminus,e)}
+    | PLUS e=operation %prec UPLUS        { Unop(Uplus,e)}
+    | e1=operation o=bop e2=operation     { Binop(o,e1,e2)}
+    | id=IDENTIFIER                       { Var id }
+    | c=const                             {Const c}
+
 
 infix_operator:
 |  OR {"||"}

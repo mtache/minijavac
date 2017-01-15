@@ -105,6 +105,7 @@ and statement =
   |  While of operation * statement
   | DoWhile of operation  * statement
   | SwitchStatement of switch_statement
+  | Operation of operation
 
 
   type expr =
@@ -194,11 +195,11 @@ let print_variable = function
 let rec print_statement = function
     | Declaration(bt, id, Some(op)) -> "Declaration avec valeur "^string_of_basicType(bt)^id^string_of_operation(op)
     | Declaration(bt, id, None) -> "Declaration sans valeur "^string_of_basicType(bt)^id
-    | While(op, st) -> "While ("^string_of_operation(op)^") {"^print_statement st ^ "}"
-    | DoWhile(op, st) -> "do{ \n"^print_statement st ^ ";\n} while (" ^ string_of_operation(op)^"); \n"
+    | While(op, st) -> " WHILE ("^string_of_operation(op)^")\n{"^print_statement st ^ "}\n"
+    | DoWhile(op, st) -> "DO{ \n"^print_statement st ^ ";\n} WHILE (" ^ string_of_operation(op)^"); \n"
   	| IfStatement(i) -> begin match i with
-  			| IfThenElse(op, e1, e2) -> " IF "^string_of_operation(op)^" THEN "^print_statement(e1)^" ELSE "^print_statement(e2)
-			| IfThen(op, e1) -> " IF "^string_of_operation(op)^" THEN "^print_statement(e1)
+  			| IfThenElse(op, e1, e2) -> " IF ("^string_of_operation(op)^") \n {"^print_statement(e1)^"} \nELSE {"^print_statement(e2) ^"}\n"
+			  | IfThen(op, e1) -> " IF ("^string_of_operation(op)^")\n { "^print_statement(e1) ^"}\n"
   			end
   	| ForStatement(f) -> begin match f with
   			| BasicFor(Some(forinit),Some(condition),Some(forupdate),Some(action)) -> " FOR (init : "^print_statement(forinit)^" condition : "^string_of_operation(condition)^" update : "^print_statement(forupdate)^" DO "^print_statement(action)
@@ -206,6 +207,7 @@ let rec print_statement = function
   	|SwitchStatement(s) -> begin match s with
         | Switch(op,switch_case_list) ->" SWITCH ("^string_of_operation(op)^") \n"
           end
+    | Operation (o) -> string_of_operation(o)
 
 
 let rec print_expression = function

@@ -68,7 +68,6 @@ rule read = parse
     | "}"                           { RBRACKET }
     | "extends"                     { EXTENDS }
     | "implements"                  { IMPLEMENTS }
-    | identifier as s               { IDENTIFIER(s) }
 
 
     | "+"           { PLUS }
@@ -115,6 +114,7 @@ rule read = parse
     | "--"          {DECREMENT}
     | "!"           {NEGATION}
     | "~"         {BCOMPLEMENT}
+    | identifier as s               { IDENTIFIER(s) }
 
     | eof                           { EOF }
     | _                             { raise (SyntaxError ("Unexpected char: " ^ Lexing.lexeme lexbuf ^"\n")) }

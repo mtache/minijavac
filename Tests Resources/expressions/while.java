@@ -2,7 +2,7 @@ while ( true ){
   int x =1;
 }
 while ( true ){
-  int x =1;
+  float x =1;
 }
 while ( true ){
   int x =1;

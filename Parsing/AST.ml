@@ -84,8 +84,8 @@ type expression_desc =
 and expression = 
     {
       edesc : expression_desc;
-(*      eloc : Location.t;
-      mutable etype : Type.t option;*)
+(*      eloc : Location.t; *)
+      mutable etype : Type.t option;
     }
 
 type switchLabel =

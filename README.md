@@ -20,3 +20,9 @@ Then you must inform ocamlbuild to use the ocamlfind tool :
 'ocamlbuild -use-ocamlfind Main.byte -- tests/UnFichierDeTest.java'
 et vous devez ajouter au fichier _tags la librarie en question par exemple :
 true: package(ANSITerminal)
+
+The Lexer/Parser is incomplete but should be ok for phase2. It contains two conflicts:
+- the dangling else problem
+- a conflict between expression and declaration of variable in statements
+both could be solved at the price of a much more complex
+grammar... Here the behavior of choosing shift should be ok.

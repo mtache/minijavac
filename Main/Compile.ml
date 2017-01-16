@@ -1,32 +1,14 @@
-(* verbose is a boolean that you can use to switch to a verbose output (for example, to dump all the ast) *)
 open Parser
-open Lexer
-open Location
-open Lexing
-open AST
-
-
-let parse_with_error lexbuf =
-  try Parser.start Lexer.read lexbuf with
-  | SyntaxError msg ->
-    print_string (msg);
-    Location.print (Location.curr lexbuf);
-    exit (-1)
-  | Error ->
-    print_string ("Parser error\n");
-    Location.print (Location.curr lexbuf);
-    exit (-1)
-  | AST.DeclarationError msg -> (* Find better name *)
-    print_string (msg);
-    Location.print (Location.curr lexbuf);
-    exit (-1)
-  | Failure msg ->
-    print_string (msg);
-    Location.print (Location.curr lexbuf);
-    exit (-1)
-
 
 let execute lexbuf verbose = 
-    let ast = parse_with_error lexbuf in
-    print_ast ast;
-    print_string "\n"
+  try 
+    let ast = compilationUnit Lexer.token lexbuf in
+    print_endline "successfull parsing";
+    if verbose then AST.print_program ast 
+  with 
+    | Error ->
+      print_string "Syntax error: ";
+      Location.print (Location.curr lexbuf)
+    | Error.Error(e,l) ->
+      Error.report_error e;
+      Location.print l

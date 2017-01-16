@@ -1,0 +1,1 @@
+public class MyClass { public void set(byte a, byte b) {} }

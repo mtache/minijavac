@@ -68,8 +68,7 @@ rule read = parse
     | "}"                           { RBRACKET }
     | "extends"                     { EXTENDS }
     | "implements"                  { IMPLEMENTS }
-
-
+    
     | "+"           { PLUS }
     | "-"           { MINUS }
     | "/"           { DIV }
@@ -107,13 +106,26 @@ rule read = parse
     | ">>"          {RSHIFT}
     | ">>>"         {ZFRSHIFT}
 
-    | "("           { LPAR }
-    | ")"           { RPAR }
+    | "("           { LPAR } (* Duplicated *)
+    | ")"           { RPAR } (* Duplicated *)
 
     | "++"          {INCREMENT}
     | "--"          {DECREMENT}
     | "!"           {NEGATION}
     | "~"         {BCOMPLEMENT}
+
+    | '('                           { RIGHTP }
+    | ')'                           { LEFTP } (* Duplicated *)
+    | "byte"                        { BYTE } (* Duplicated *)
+    | "short"                       { SHORT }
+    | "int"                         { INT }
+    | "long"                        { LONG }
+    | "char"                        { CHAR }
+    | "float"                       { FLOAT }
+    | "double"                      { DOUBLE }
+    | "void"                        { VOID }
+    | "byte"                        { BYTE }
+    
     | identifier as s               { IDENTIFIER(s) }
 
     | eof                           { EOF }

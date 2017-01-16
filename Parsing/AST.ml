@@ -22,6 +22,40 @@ type modifier =
     | Final
     | Strictfp
 
+type jType =
+    | Byte
+    | Short
+    | Int
+    | Long
+    | Char
+    | Float
+    | Double
+    | Void
+
+type parameters =
+    {
+        pType : jType;
+        pName : string;
+    }
+
+type methodHeader =
+    {
+        mModifier : modifier list;
+        mResultType : jType;
+        mName : string;
+        mParameters : parameters list;
+    }
+
+type methodDeclaration =
+    {
+        mHeader : methodHeader;
+    }
+
+type classBody = 
+    {
+        cMethods : methodDeclaration list;
+    }
+    
 type classnode =
     {
         cmodifiers : modifier list;

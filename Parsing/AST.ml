@@ -286,11 +286,10 @@ let rec string_of_expression_desc = function
        (ListII.concat_map "" (function None -> "[]" | Some e -> "["^(string_of_expression e)^"]") args)
        
 and string_of_expression e = 
-  let s = string_of_expression_desc e.edesc in
-  s(*
-    match e.etype with
+  let s = string_of_expression_desc e.edesc
+  in match e.etype with
       | None -> s
-      | Some t -> "("^s^" : "^(Type.stringOf t)^")"*)
+      | Some t -> "("^s^" : "^(Type.stringOf t)^")"
 
 let print_attribute tab a =
   print_string tab;

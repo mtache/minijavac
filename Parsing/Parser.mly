@@ -4,28 +4,29 @@
 %}
 %token PACKAGE EOF SEMICOLON IMPORT STAR POINT COMMA
 %token LBRACKET RBRACKET LEFTP RIGHTP
-%token BYTE SHORT INT LONG CHAR FLOAT DOUBLE VOID
+%token BYTE SHORT LONG CHAR DOUBLE VOID
 %token PUBLIC PROTECTED PRIVATE ABSTRACT STATIC FINAL STRICTFP
 %token CLASS INTERFACE EXTENDS IMPLEMENTS
 
 
-%token  PLUS MINUS DIV TIMES MOD  FALSE TRUE IDFLOAT IDINT IDBYTE IDSHORT IDLONG IDCHAR IDDOUBLE IDBOOLEAN THEN ELSE LPAR RPAR QUESTION
+%token  PLUS MINUS DIV TIMES MOD  FALSE TRUE IDFLOAT IDINT IDBYTE IDSHORT IDLONG IDCHAR IDDOUBLE IDBOOLEAN ELSE LPAR RPAR 
 /*assignment Operators*/
-%token EQ SELFADD SELFSUB SELFMUL SELFDIV SELFAND SELFOR SELFXOR SELFMOD SELFLEFTSHIFT SELFRIGHTSHIFT USELFRIGHTSHIFT
-
+(* SELFADD SELFSUB SELFMUL SELFDIV SELFAND SELFOR SELFXOR SELFMOD SELFLEFTSHIFT SELFRIGHTSHIFT USELFRIGHTSHIFT *)
+%token EQ BREAK
 /* statements */
-%token ASSERT IF FOR WHILE DO TRY SWITCH  CONTINUE   CASE DEFAULT COLON
+%token  IF FOR WHILE DO  SWITCH  CASE DEFAULT COLON
 
 /*infix operators */
-%token OR  AND BOR BXOR BAND EQUAL NOTEQUAL LESS GREATER LESSEQUAL GREATEREAQUAL LSHIFT RSHIFT ZFRSHIFT BREAK
+(* %token OR  AND BOR BXOR BAND EQUAL NOTEQUAL LESS GREATER LESSEQUAL GREATEREAQUAL LSHIFT RSHIFT ZFRSHIFT *)
 
-%token INSTANCEOF NEW
-%token  INCREMENT DECREMENT NEGATION BCOMPLEMENT
+(* %token INSTANCEOF NEW CONTINUE ASSERT QUESTION TRY THEN
+%token <string> STRING
+%token INCREMENT DECREMENT NEGATION BCOMPLEMENT *)
 
 
 %token <float> FLOAT
 %token <int> INT
-%token <string> STRING
+
 %token <string> IDENTIFIER
 %type <package> package_declaration
 %type <import> import_declaration
@@ -71,7 +72,7 @@ type_declaration:
     | c=class_declaration { Class(c) }
     | i=interface_declaration { Interface(i) }
 class_declaration:
-    | m=class_modifier* CLASS n=IDENTIFIER e=extends_declaration? i=implements_declaration? RBRACKET b=class_body LBRACKET {
+    | m=class_modifier* CLASS n=IDENTIFIER e=extends_declaration? i=implements_declaration?  LBRACKET RBRACKET  {
         match e with
             | Some([h]) -> { cmodifiers=m; cname=n; cextends=Some(h); cimplements=i }
             | None -> { cmodifiers=m; cname=n; cextends=None; cimplements=i }
@@ -80,11 +81,9 @@ identifier_list:
     | i=IDENTIFIER { [i] }
     | a=identifier_list COMMA i=IDENTIFIER { a@[i] }
 extends_declaration:
-    | p=pair(EXTENDS, identifier_list) { match p with
-                                        | (e,i) -> i }
+    | p=pair(EXTENDS, identifier_list) { match p with (e,i) -> i }
 implements_declaration:
-    | p=pair(IMPLEMENTS, identifier_list) { match p with
-                                        | (e,i) -> i }
+    | p=pair(IMPLEMENTS, identifier_list) { match p with (e,i) -> i }
 class_modifier:
     | PUBLIC { Public }
     | PROTECTED { Protected }
@@ -94,13 +93,12 @@ class_modifier:
     | FINAL { Final }
     | STRICTFP { Strictfp }
 interface_declaration:
-    | m=class_modifier* INTERFACE n=IDENTIFIER e=extends_declaration? RBRACKET class_body LBRACKET { { imodifiers=m; iname=n; iextends=e } }
+    | m=class_modifier* INTERFACE n=IDENTIFIER e=extends_declaration? LBRACKET RBRACKET { { imodifiers=m; iname=n; iextends=e } }
 name:
     | i=IDENTIFIER { Name([i]) }
     | n=name POINT i=IDENTIFIER { match n with Name(h::t) -> Name(i::h::t) }
 
 /*EXPRESSIONS*/
-
 
 expr:
 	| s=statement 		{ Statement(s)}
@@ -160,52 +158,6 @@ expr:
     | id=IDENTIFIER                       { Var id }
     | c=const                             {Const c}
 
-
-infix_operator:
-|  OR {"||"}
-|  AND {"&&"}
-|  BOR {"|"}
-|  BXOR {"^"}
-|  BAND {"&"}
-|  EQUAL {"=="}
-|  NOTEQUAL {"!="}
-|  LESS {"<"}
-|  GREATER {">"}
-|  LESSEQUAL {"<="}
-|  GREATEREAQUAL {">="}
-|  LSHIFT {"<<"}
-|  RSHIFT {">>"}
-|  ZFRSHIFT {">>>"}
-|  PLUS {"+"}
-|  MINUS {"-"}
-|  TIMES {"*"}
-|  DIV {"/"}
-|  MOD {"%"}
-
-
-prefix_operator:
-  | NEGATION {"!"}
-  | BCOMPLEMENT {"~"}
-
-postfix_operator:
-  | INCREMENT {"++"}
-  | DECREMENT   {"--"}
-
-
-assignment_operator:
-  | EQ {"="}
-  | SELFADD {"+="}
-  | SELFSUB {"-="}
-  | SELFMUL {"*="}
-  | SELFDIV {"/="}
-  | SELFAND {"&="}
-  | SELFOR  {"|="}
-  | SELFXOR {"^="}
-  | SELFMOD {"%="}
-  | SELFLEFTSHIFT {"<<="}
-  | SELFRIGHTSHIFT {">>="}
-  | USELFRIGHTSHIFT  {">>>="}
-
   const:
     | i=INT {Int i}
     | f=FLOAT {Float f}
@@ -235,7 +187,7 @@ method_declaration:
     | h=method_header { { mHeader = h } }
 
 method_header:
-    | m=class_modifier* r=jType n=IDENTIFIER RIGHTP p=comma_separated_parameters? LEFTP RBRACKET LBRACKET { match p with
+    | m=class_modifier* r=jType n=IDENTIFIER LEFTP p=comma_separated_parameters? RIGHTP LBRACKET RBRACKET  { match p with
                                                                                                                 | (Some(param)) -> { mModifier = m; mResultType = r; mName = n; mParameters = param }
                                                                                                                 | _ -> { mModifier = m; mResultType = r; mName = n; mParameters = [] } }
 

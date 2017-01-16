@@ -40,7 +40,6 @@ rule read = parse
 
 
     | "if"          { IF }
-    | "then"        { THEN }
     | "else"        { ELSE }
 
     | "for"         { FOR }
@@ -75,56 +74,26 @@ rule read = parse
     | "*"           { TIMES }
     | "%"           { MOD }
     | ":"           { COLON }
-    | "?"           { QUESTION }
 
     | "="           {EQ}
-    | "+="          {SELFADD}
-    | "-="          {SELFSUB}
-    | "*="          {SELFMUL}
-    | "/="          {SELFDIV}
-    | "&="          {SELFAND}
-    | "|="          {SELFOR}
-    | "^="          {SELFXOR}
-    | "%="          {SELFMOD}
-    | "<<="         {SELFLEFTSHIFT}
-    | ">>="         {SELFRIGHTSHIFT}
-    | ">>>="        {USELFRIGHTSHIFT}
 
 
-    | "||"          {OR}
-    | "&&"          {AND}
-    | "|"           {BOR}
-    | "^"           {BXOR}
-    | "&"           {BAND}
-    | "=="          {EQUAL}
-    | "!="          {NOTEQUAL}
-    | "<"           {LESS}
-    | ">"           {GREATER}
-    | "<="          {LESSEQUAL}
-    | ">="          {GREATEREAQUAL}
-    | "<<"          {LSHIFT}
-    | ">>"          {RSHIFT}
-    | ">>>"         {ZFRSHIFT}
+
 
     | "("           { LPAR } (* Duplicated *)
     | ")"           { RPAR } (* Duplicated *)
 
-    | "++"          {INCREMENT}
-    | "--"          {DECREMENT}
-    | "!"           {NEGATION}
-    | "~"         {BCOMPLEMENT}
-
-    | '('                           { RIGHTP }
+    | '('                           { RIGHTP } (* Duplicated *)
     | ')'                           { LEFTP } (* Duplicated *)
-    | "byte"                        { BYTE } (* Duplicated *)
+    | "byte"                        { IDBYTE } 
     | "short"                       { SHORT }
-    | "int"                         { INT }
-    | "long"                        { LONG }
-    | "char"                        { CHAR }
-    | "float"                       { FLOAT }
-    | "double"                      { DOUBLE }
+    | "int"                         { IDINT }
+    | "long"                        { IDLONG }
+    | "char"                        { IDCHAR }
+    | "float"                       { IDFLOAT }
+    | "double"                      { IDDOUBLE }
     | "void"                        { VOID }
-    | "byte"                        { BYTE }
+    | "byte"                        { IDBYTE }
     
     | identifier as s               { IDENTIFIER(s) }
 
@@ -137,4 +106,5 @@ and blockComment = parse
 
 and lineComment = parse
     | '\n' { read lexbuf }
+    | eof  { EOF }
     | _ { lineComment lexbuf }

@@ -1,4 +1,4 @@
-exception MalformedExpression of string;
+exception MalformedExpression of string
 
 
 let rec exp_typing exp =
@@ -26,8 +26,9 @@ let rec exp_typing exp =
   | AssignExp(e1,op,e2)   -> assign_typing e1 op e2
   | Post(e,op)            -> postfix_typing e op
   | Pre(op,e)             -> prefix_typing op e
-  | Cast(t,e)             -> if (e.etype == t) then t  (* Incomplete *)
-                                else raise MalformedExpression("Malformed cast") 
+  | Cast(t,e)             -> match e.etype with (* Incomplete *)
+                                | t -> t 
+                                | _ -> raise MalformedExpression("Malformed cast") 
   | Type(t)               -> t
   | ClassOf(t)            -> t
   | Instanceof            -> Primitive(Boolean)
@@ -35,33 +36,59 @@ let rec exp_typing exp =
   in { edesc=exp.edesc, etype=Some(t) }
 
 let rec infix_typing e1 op e2 = match op with    (* TODO *)
-  | Op_cor   -> if (e1.etype!=Primitive(Boolean)||e2.etype!=Primitive(Boolean)) 
-                        then raise MalformedExpression("|| operator with no boolean types")
-                        else Primitive(Boolean)
-  | Op_cand  -> if (e1.etype!=Primitive(Boolean)||e2.etype!=Primitive(Boolean)) 
-                        then raise MalformedExpression("&& operator with no boolean types")
-                        else Primitive(Boolean)
+  | Op_cor   -> match (e1.etype, e2.etype) with 
+                | (Primitive(Boolean), Primitive(Boolean)) -> Primitive(Boolean)
+                | _ -> raise MalformedExpression("|| operator with non boolean types")
+  | Op_cand  -> match (e1.etype, e2.etype) with 
+                | (Primitive(Boolean), Primitive(Boolean)) -> Primitive(Boolean)
+                | _ -> raise MalformedExpression("&& operator with non boolean types")
   | Op_or    -> "|"
   | Op_and   -> "&"
   | Op_xor   -> "^"
-  | Op_eq    -> if (e1.etype==Void)||e2.etype==Void) 
-                        then raise MalformedExpression("== operator with void")
-                        else Primitive(Boolean)
-  | Op_ne    -> if (e1.etype==Void)||e2.etype==Void) 
-                        then raise MalformedExpression("!= operator with void")
-                        else Primitive(Boolean)
-  | Op_gt    -> ">"
-  | Op_lt    -> "<"
-  | Op_ge    -> ">="
-  | Op_le    -> "<="
+  | Op_eq    -> match (e1.etype, e2.etype) with 
+                | (Void, _) -> Primitive(Boolean)
+                | (_, Void) -> Primitive(Boolean)
+                | _ -> raise MalformedExpression("== operator with void operand")
+  | Op_ne    -> match (e1.etype, e2.etype) with 
+                | (Void, _) -> Primitive(Boolean)
+                | (_, Void) -> Primitive(Boolean)
+                | _ -> raise MalformedExpression("!= operator with void operand")
+  | Op_gt    -> if check_numeric_operands ">" e1 e2 then begin match (e1.etype, e2.etype) with 
+                | (* TODO *)
+                end
+  | Op_lt    -> if check_numeric_operands "<" e1 e2 then begin match (e1.etype, e2.etype) with 
+                | (* TODO *)
+                end
+  | Op_ge    -> if check_numeric_operands ">=" e1 e2 then begin match (e1.etype, e2.etype) with 
+                | (* TODO *)
+                end
+  | Op_le    -> if check_numeric_operands "<=" e1 e2 then begin match (e1.etype, e2.etype) with 
+                | (* TODO *)
+                end
   | Op_shl   -> "<<"
   | Op_shr   -> ">>"
   | Op_shrr  -> ">>>"
-  | Op_add   -> "+"
-  | Op_sub   -> "-"
-  | Op_mul   -> "*"
-  | Op_div   -> "/"
-  | Op_mod   -> "%"
+  | Op_add   -> if check_numeric_operands "+" e1 e2 then begin match (e1.etype, e2.etype) with 
+                | (* TODO *)
+                end
+  | Op_sub   -> if check_numeric_operands "-" e1 e2 then begin match (e1.etype, e2.etype) with 
+                | (* TODO *)
+                end
+  | Op_mul   -> if check_numeric_operands "*" e1 e2 then begin match (e1.etype, e2.etype) with 
+                | (* TODO *)
+                end
+  | Op_div   -> if check_numeric_operands "/" e1 e2 then begin match (e1.etype, e2.etype) with 
+                | (* TODO *)
+                end
+  | Op_mod   -> if check_numeric_operands "%" e1 e2 then begin match (e1.etype, e2.etype) with 
+                | (* TODO *)    
+                end
+
+let check_numeric_operands opstr e1 e2 =
+    match (e1.etype, e2.etype) with 
+                | (Primitive(Boolean), Primitive(Boolean)) -> raise MalformedExpression(opstr^" operator with an operand that is not convertible to primitive numeric type")
+                | (Primitive, Primitive) -> true
+                | _ -> raise MalformedExpression(opstr^" operator with an operand that is not convertible to primitive numeric type")
 
 let rec assign_typing e1 op e2 = match op with    (* TODO *)
   | Assign  -> "="

@@ -1,7 +1,9 @@
 exception MalformedExpression of string
 exception EnvironmentException of string
+open AST
+open Type
 
-let rec exp_typing exp =
+(*let rec exp_typing exp =
     let t=match exp.edesc with
   (*
   | Call of expression option * string * expression list ## 15.12 doc
@@ -122,12 +124,12 @@ let rec val_typing v =
     (* TODO *)
 let rec array_typing e l =
     (* TODO *)
-
+*)
 let rec env_methods = function
   | [] -> Env.initial() 
   | h::t -> let env = env_methods t
             and key = h.mname
-            in if Env.mem(env,key) then raise EnvironmentException("Method "^key^" defined more than once")
+            in if Env.mem env key then raise EnvironmentException("Method "^key^" defined more than once")
             else Env.define(env,key,h.mreturntype)
 
 let val_info = function

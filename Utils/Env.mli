@@ -18,4 +18,4 @@ val define : ('a,'b) t -> 'a -> 'b -> ('a,'b) t
 val iter : ('a * 'b -> unit) -> ('a,'b) t -> unit
 
 (* print function for the class environment *)
-val print_env : (string, (string, Type.t) t) t -> unit
+val print_class_env : (string, (string, Type.t) t) t -> unit

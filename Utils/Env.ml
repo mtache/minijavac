@@ -13,12 +13,12 @@ let define env n t =
 
 let iter f = Hashtbl.iter (fun s i -> f (s,i))
 
-let print_env_methods env =
-  print_string "Methods :\n";
-  iter (fun (key,value) ->
-  print_string (key^" of type "^(Type.stringOf value))
-  ) env
-let print_env env =
-  iter (fun (key,value) -> 
+
+let print_class_env env =
+  let print_methods_env env =
+    print_string "  Methods :\n";
+    iter (fun (key,value) ->
+    print_string ("    "^key^" of type "^(Type.stringOf value)^"\n")) env
+  in iter (fun (key,value) -> 
   print_string ("Class : "^key^"\n");
-  print_env_methods value) env
+  print_methods_env value) env

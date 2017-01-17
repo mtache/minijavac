@@ -125,23 +125,25 @@ let rec val_typing v =
 let rec array_typing e l =
     (* TODO *)
 *)
-let rec env_methods = function
-  | [] -> Env.initial() 
-  | h::t -> let env = env_methods t
-            and key = h.mname
-            in if Env.mem env key then raise (EnvironmentException("Method "^key^" defined more than once"))
-            else Env.define env key h.mreturntype
 
-let val_info = function
-  | Class(c) -> env_methods c.cmethods
-  | Inter -> raise (EnvironmentException("Not implemented"))
 
-let rec env_class a =
-  let tl = a.type_list in
-  let rec env_class_list = function
+
+
+let rec class_env a =
+  let rec methods_env = function
+    | [] -> Env.initial() 
+    | h::t -> let env = methods_env t
+              and key = h.mname
+              in if Env.mem env key then raise (EnvironmentException("Method "^key^" defined more than once"))
+              else Env.define env key h.mreturntype
+  in let type_env = function
+    | Class(c) -> methods_env c.cmethods
+    | Inter -> raise (EnvironmentException("Not implemented"))
+  in let tl = a.type_list in
+  let rec type_list_env = function
     | [] -> Env.initial()
-    | h::t -> let env = env_class_list t
-            and key = h.id
-            in if Env.mem env key then raise (EnvironmentException("Class "^key^" defined more than once"))
-            else Env.define env key (val_info h.info)
-    in env_class_list tl;
+    | h::t -> let env = type_list_env t
+              and key = h.id
+              in if Env.mem env key then raise (EnvironmentException("Class "^key^" defined more than once"))
+              else Env.define env key (type_env h.info)
+    in type_list_env tl;

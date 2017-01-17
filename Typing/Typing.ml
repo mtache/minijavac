@@ -1,5 +1,5 @@
 exception MalformedExpression of string
-
+exception EnvironmentException of string
 
 let rec exp_typing exp =
     let t=match exp.edesc with
@@ -122,3 +122,21 @@ let rec val_typing v =
     (* TODO *)
 let rec array_typing e l =
     (* TODO *)
+
+let rec env_methods = function
+  | [] -> Env.initial() 
+  | h::t -> let env = env_methods t
+            and key = h.mname
+            in if Env.mem(env,key) then raise EnvironmentException("Method "^key^" defined more than once")
+            else Env.define(env,key,h.mreturntype)
+
+let val_info = function
+  | Class(c) -> env_methods c.cmethods
+  | Inter -> raise EnvironmentException("Not implemented")
+
+let rec env_class = function
+  | [] -> Env.initial()
+  | h::t -> let env = env_class t
+            and key = h.id
+            in if Env.mem(env,key) then raise EnvironmentException("Class "^key^" defined more than once")
+            else Env.define(env,key,val_info h.info)

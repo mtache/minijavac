@@ -1,16 +1,13 @@
-open Parser
-open Typing
+
 
 let execute lexbuf verbose = 
   try 
-    let ast = compilationUnit Lexer.token lexbuf in
+    let ast = Parser.compilationUnit Lexer.token lexbuf in
+    let env = Typing.env_class ast in
     print_endline "successfull parsing";
-    Env.iter (fun (key,value) -> 
-    print_string key;)
-    (env_class ast.type_list);
-    if verbose then AST.print_program ast 
+    if verbose then AST.print_program ast; Env.print_env env;
   with 
-    | Error ->
+    | Parser.Error ->
       print_string "Syntax error: ";
       Location.print (Location.curr lexbuf)
     | Error.Error(e,l) ->

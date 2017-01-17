@@ -129,16 +129,19 @@ let rec env_methods = function
   | [] -> Env.initial() 
   | h::t -> let env = env_methods t
             and key = h.mname
-            in if Env.mem env key then raise EnvironmentException("Method "^key^" defined more than once")
-            else Env.define(env,key,h.mreturntype)
+            in if Env.mem env key then raise (EnvironmentException("Method "^key^" defined more than once"))
+            else Env.define env key h.mreturntype
 
 let val_info = function
   | Class(c) -> env_methods c.cmethods
-  | Inter -> raise EnvironmentException("Not implemented")
+  | Inter -> raise (EnvironmentException("Not implemented"))
 
-let rec env_class = function
-  | [] -> Env.initial()
-  | h::t -> let env = env_class t
+let rec env_class a =
+  let tl = a.type_list in
+  let rec env_class_list = function
+    | [] -> Env.initial()
+    | h::t -> let env = env_class_list t
             and key = h.id
-            in if Env.mem(env,key) then raise EnvironmentException("Class "^key^" defined more than once")
-            else Env.define(env,key,val_info h.info)
+            in if Env.mem env key then raise (EnvironmentException("Class "^key^" defined more than once"))
+            else Env.define env key (val_info h.info)
+    in env_class_list tl;

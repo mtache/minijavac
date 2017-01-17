@@ -16,3 +16,6 @@ val define : ('a,'b) t -> 'a -> 'b -> ('a,'b) t
 
 (* iterate a function over all the bindings of the environment *)
 val iter : ('a * 'b -> unit) -> ('a,'b) t -> unit
+
+(* print function for the class environment *)
+val print_env : (string, (string, Type.t) t) t -> unit

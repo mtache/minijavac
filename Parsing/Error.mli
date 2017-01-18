@@ -11,3 +11,4 @@ val illegal_escape_char : Location.t -> 'a
 val unterminated_string : Location.t -> 'a
 val unterminated_comment : Location.t -> 'a
 val syntax : Location.t -> 'a
+val return : AST.astmethod -> 'a

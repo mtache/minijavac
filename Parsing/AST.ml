@@ -84,7 +84,7 @@ type expression_desc =
 and expression = 
     {
       edesc : expression_desc;
-(*      eloc : Location.t; *)
+      eloc : Location.t;
       mutable etype : Type.t option;
     }
 
@@ -137,7 +137,7 @@ type astmethod = {
     margstype : argument list;
     mthrows : Type.ref_type list;
     mbody : statement list;
-    (*      mloc : Location.t;*)
+    mloc : Location.t;
   }
 type astconst = {
     mutable cmodifiers : modifier list;

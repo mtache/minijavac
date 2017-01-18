@@ -4,6 +4,7 @@ type t =
   | Unterminated_string
   | Unterminated_comment
   | Syntax
+  | Wrong_return of AST.astmethod
 
 exception Error of t * Location.t;;
 
@@ -21,6 +22,8 @@ let report_error = function
       print_endline "Comment not terminated: "
   | Syntax ->
       print_endline "Syntax error: "
+  | Wrong_return m ->
+      print_endline ("Wrong return type in method : "^m.mname)
 
 let illegal_char char loc =
   raise (Error(Illegal_character char, loc))
@@ -36,3 +39,6 @@ let unterminated_comment loc =
 
 let syntax loc =
   raise (Error (Syntax, loc))
+
+let return m =
+  raise (Error (Wrong_return m, m.mloc))

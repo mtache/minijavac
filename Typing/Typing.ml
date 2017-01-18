@@ -146,28 +146,54 @@ let rec class_env ast =
               else Env.define env key (type_env h.info)
   in type_list_env tl
 
+let rec expr_check exp =
+  let default = true in
+  match exp.edesc with
+  | Call(Some(e),s,l)     -> default (* TODO *)
+  | Call(None,s,l)        -> default (* TODO *)
+  | NewArray(t,l,Some(e)) -> default (* TODO *)
+  | NewArray(t,l,None)    -> default (* TODO *)
+  | ArrayInit(l)          -> default (* TODO *)
+  | Name(id)              -> default (* TODO *)
+  | Attr(o,id)            -> default (* TODO *)
+  | Array(e,el)           -> default (* TODO *)
+  | New(None,p,_)         -> default (* TODO *)
+  | New(Some o,p,_)       -> default (* TODO *)
+  | Val(v)                -> default (* TODO *)
+  | If(c,e1,e2)           -> default (* TODO *)
+  | CondOp(c,e1,e2)       -> default (* TODO *)
+  | Op(e1,op,e2)          -> default (* TODO *)
+  | AssignExp(e1,op,e2)   -> default (* TODO *)
+  | Post(e,op)            -> default (* TODO *)
+  | Pre(op,e)             -> default (* TODO *)
+  | Cast(t,e)             -> default (* TODO *)
+  | Type(t)               -> default (* TODO *)
+  | ClassOf(t)            -> default (* TODO *)
+  | Instanceof(e,t)       -> default (* TODO *)
+  | VoidClass             -> default (* TODO *)
 
 
 let rec statement_check s m t env =
    let default = true in
    let rec list_check l = match l with [] -> true | h::u -> (statement_check h m t env) && (list_check u)
    in match s with
-  (*  | VarDecl of (Type.t * string * expression option) list *)
-    | VarDecl(l)           -> default (* TODO *)
     | Block(sl)            -> list_check sl
-    | Nop                  -> default (* TODO *)
-    | While(cond,s)        -> default (* TODO *)
-(*    | For of (Type.t option * string * expression option) list * expression option * expression list * statement  *)
-    | For(w,t,f,_)         -> default (* TODO *)
-    | If(cond,s1,Some(s2)) -> default (* TODO *)
-    | If(cond,s,None)      -> default (* TODO *)
-    | Return(Some(exp))    -> default (* TODO *)
-    | Return(None)         -> begin match find (find env t.id) m.mname with Void -> true | _ -> false end
-    | Throw(exp)           -> default (* TODO *)
- (*   | Try of statement list * (argument * statement list) list * statement list *)
-    | Try(l1,l2,l3)        -> default (* TODO *)
-    | Expr(exp)            -> default (* TODO *)
+    | While(cond,s)        -> (statement_check s m t env)
+    | If(cond,s1,Some(s2)) -> (statement_check s1 m t env) && (statement_check s2 m t env)
+    | If(cond,s,None)      -> statement_check s m t env
+    | Return(None)         -> begin match find (find env t.id) m.mname with Void -> true | _ -> (Error.return m) end  (* Tested -> OK *)
+    | Expr(exp)            -> expr_check exp
 
+(*    | For of (Type.t option * string * expression option) list * expression option * expression list * statement TODO *)
+    | For(_,Some(exp),_,s)         -> (statement_check s m t env)
+    | For(_,None,_,s)         -> (statement_check s m t env)
+ (*   | Try of statement list * (argument * statement list) list * statement list TODO *)
+    | Try(sl1,l,sl2)       -> (list_check sl1) && (list_check sl2)
+(*  | VarDecl of (Type.t * string * expression option) list TODO *) 
+    | VarDecl(l)           -> default (* TODO *)
+    | Return(Some(exp))    -> default (* TODO *)
+    | Nop                  -> default (* TODO *)  
+    | Throw(exp)           -> default (* TODO *)
 
 
 let check_class ast =

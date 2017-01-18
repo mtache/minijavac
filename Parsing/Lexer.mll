@@ -8,7 +8,6 @@ let _ =
   List.iter (fun (k,d) -> Hashtbl.add keyword_table k d) 
      KeywordLexer.kw_list
 
-		     
 let ident_or_keyword id =
   try Hashtbl.find keyword_table id
   with Not_found -> IDENTIFIER id
@@ -24,6 +23,8 @@ let char_for_backslash = function
   | 'r' -> '\013'
   | 'f' -> '\012'
   | c   -> c
+
+
 }
 
 let not_newline_char = [^ '\n' '\r']

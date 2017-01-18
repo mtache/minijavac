@@ -1,6 +1,7 @@
 %{
     open AST
     open Type
+    open Lexing
 
     let rec separate = function
       | [] -> [], [], [], [], []
@@ -137,16 +138,16 @@ memberDecl:
         `AttList (List.map (fun (id,init) -> { amodifiers = [] ; atype = t ; aname = id ; adefault = init }) vars)
     }
   | VOID id=IDENTIFIER pl=paren_comma(formalParameter) el=loption(throws) mb=block {
-        `Meth { mmodifiers = [] ; mreturntype = Type.Void ; mname = id ; margstype=pl ; mthrows =el ; mbody=mb }
+        `Meth { mmodifiers = [] ; mreturntype = Type.Void ; mname = id ; margstype=pl ; mthrows =el ; mbody=mb ; mloc=Location.symbol_loc $startpos $endpos }
     }
   | r=aType id=IDENTIFIER pl=paren_comma(formalParameter) el=loption(throws) mb=block {
-        `Meth { mmodifiers = [] ; mreturntype = r ; mname = id ; margstype=pl ; mthrows =el ; mbody=mb }
+        `Meth { mmodifiers = [] ; mreturntype = r ; mname = id ; margstype=pl ; mthrows =el ; mbody=mb ; mloc=Location.symbol_loc $startpos $endpos }
     }
   | VOID id=IDENTIFIER pl=paren_comma(formalParameter) el=loption(throws) SEMI {
-        `Meth { mmodifiers = [] ; mreturntype = Type.Void ; mname = id ; margstype=pl ; mthrows =el ; mbody=[] }
+        `Meth { mmodifiers = [] ; mreturntype = Type.Void ; mname = id ; margstype=pl ; mthrows =el ; mbody=[] ; mloc=Location.symbol_loc $startpos $endpos  }
     }
   | r=aType id=IDENTIFIER pl=paren_comma(formalParameter) el=loption(throws) SEMI {
-        `Meth { mmodifiers = [] ; mreturntype = r ; mname = id ; margstype=pl ; mthrows =el ; mbody=[] }
+        `Meth { mmodifiers = [] ; mreturntype = r ; mname = id ; margstype=pl ; mthrows =el ; mbody=[] ; mloc=Location.symbol_loc $startpos $endpos }
     }
   | id=IDENTIFIER pl=paren_comma(formalParameter) el=loption(throws) mb=block {
         `Const { cmodifiers = [] ; cname = id ; cargstype=pl ; cthrows =el ; cbody=mb }

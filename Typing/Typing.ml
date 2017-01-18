@@ -1,148 +1,119 @@
-exception MalformedExpression of string
-exception EnvironmentException of string
 open AST
 open Type
 open Env
 
-(*let rec exp_typing exp =
-    let t=match exp.edesc with
+let rec check_numeric_operand expl op = let check exp = match exp.etype with
+  | Some(Primitive(Boolean)) -> Error.non_numeric_operand exp op
+  | Some(Primitive(_)) -> true
+  | _ -> Error.non_numeric_operand exp op
+  in match expl with [] -> true | h::t -> (check h) && (check_numeric_operand t op)
+
+let rec check_boolean_operand expl op = let check exp = match exp.etype with
+  | Some(Primitive(Boolean)) -> true
+  | _ -> Error.non_boolean_operand exp op
+  in match expl with [] -> true | h::t -> (check h) && (check_numeric_operand t op)
+
+
+let rec infix_typing e1 op e2 = match op with    (* TODO *)
+  | Op_cor   -> if check_boolean_operand (e1::[e2]) op then None else None    (* TODO *)
+  | Op_cand  -> if check_boolean_operand (e1::[e2]) op then None else None   (* TODO *)
+  | Op_or    -> None    (* TODO *)
+  | Op_and   -> None    (* TODO *)
+  | Op_xor   -> None    (* TODO *)
+  | Op_eq    -> None    (* TODO *)
+  | Op_ne    -> None    (* TODO *)
+  | Op_gt    -> if check_numeric_operand (e1::[e2]) op then None else None     (* TODO *)
+  | Op_lt    -> if check_numeric_operand (e1::[e2]) op then None else None     (* TODO *)
+  | Op_ge    -> if check_numeric_operand (e1::[e2]) op then None else None     (* TODO *)
+  | Op_le    -> if check_numeric_operand (e1::[e2]) op then None else None     (* TODO *)
+  | Op_shl   -> None    (* TODO *)
+  | Op_shr   -> None    (* TODO *)
+  | Op_shrr  -> None    (* TODO *)
+  | Op_add   -> if check_numeric_operand (e1::[e2]) op then None else None     (* TODO *)
+  | Op_sub   -> if check_numeric_operand (e1::[e2]) op then None else None     (* TODO *)
+  | Op_mul   -> if check_numeric_operand (e1::[e2]) op then None else None     (* TODO *)
+  | Op_div   -> if check_numeric_operand (e1::[e2]) op then None else None     (* TODO *)
+  | Op_mod   -> if check_numeric_operand (e1::[e2]) op then None else None     (* TODO *)
+
+let rec assign_typing e1 op e2 = match op with    (* TODO *)
+  | Assign  -> None    (* TODO *)
+  | Ass_add -> None    (* TODO *)
+  | Ass_sub -> None    (* TODO *)
+  | Ass_mul -> None    (* TODO *)
+  | Ass_div -> None    (* TODO *)
+  | Ass_mod -> None    (* TODO *)
+  | Ass_shl -> None    (* TODO *)
+  | Ass_shr -> None    (* TODO *)
+  | Ass_shrr-> None    (* TODO *)
+  | Ass_and -> None    (* TODO *)
+  | Ass_xor -> None    (* TODO *)
+  | Ass_or  -> None    (* TODO *)
+
+let rec prefix_typing op e = match op with    (* TODO *)
+  | Op_not  -> None    (* TODO *)
+  | Op_neg  -> None    (* TODO *)
+  | Op_incr -> None    (* TODO *)
+  | Op_decr -> None    (* TODO *)
+  | Op_bnot -> None    (* TODO *)
+  | Op_plus -> None    (* TODO *)
+
+let rec postfix_typing e op = match op with     (* TODO *)
+  | Incr    -> None    (* TODO *)
+  | Decr    -> None    (* TODO *)
+
+let rec if_typing c e1 e2 = None   (* TODO *)
+let rec val_typing v = None        (* TODO *)
+let rec array_typing e l = None    (* TODO *)
+
+
+let rec exp_typing exp =
+  let t=match exp.edesc with
   (*
   | Call of expression option * string * expression list ## 15.12 doc
    *)
-  | NewArray of Type.t * (expression option) list * expression option
-  | ArrayInit(l)          -> match l with
-                                | [] -> raise MalformedExpression("Empty array")
-                                | [e] -> Array(exp_typing e,List.length l)
-                                | h::t -> Array(exp_typing h,List.length l) (* TODO Improve *)
-
-  | Name(id)              -> Ref(Type.mk_type [] id)
-  | Attr(o,id)            -> Ref(Type.mk_type (InnerParser.listOfNames_form_exp o) id)
-  | Array(e,el)           -> Array(InnerParser.listOfTypes_form_exp e,List.length el)
-
-  | New(None,p,_)         -> Ref(mk_type p)   (* TODO Improve *)
-  | New(Some o,p,_)       -> Ref(mk_type p o)
-
+  | Call(Some(e),s,l)     -> None    (* TODO *)
+  | Call(None,s,l)        -> None    (* TODO *)
+  | NewArray(t,l,Some(e)) -> None    (* TODO *)
+  | NewArray(t,l,None)    -> None    (* TODO *)
+  | ArrayInit(l)          -> None    (* TODO *)
+  | Name(id)              -> Some(Ref(Type.mk_type [] id)) (* TODO check *)
+  | Attr(o,id)            -> None    (* TODO *)
+  | Array(e,el)           -> None    (* TODO *)
+  | New(None,p,_)         -> None    (* TODO *)
+  | New(Some o,p,_)       -> None    (* TODO *)
   | Val(v)                -> val_typing v
   | If(c,e1,e2)           -> if_typing c e1 e2
-  | CondOp(c,e1,e2)       -> if_typing c e1 e2 (* check if it is the same case than if *)
+  | CondOp(c,e1,e2)       -> if_typing c e1 e2 (* TODO check if it is the same case than if *)
   | Op(e1,op,e2)          -> infix_typing e1 op e2
   | AssignExp(e1,op,e2)   -> assign_typing e1 op e2
   | Post(e,op)            -> postfix_typing e op
   | Pre(op,e)             -> prefix_typing op e
-  | Cast(t,e)             -> match e.etype with (* Incomplete *)
-                                | t -> t 
-                                | _ -> raise MalformedExpression("Malformed cast") 
-  | Type(t)               -> t
-  | ClassOf(t)            -> t
-  | Instanceof            -> Primitive(Boolean)
-  | VoidClass             -> Void
-  in { edesc=exp.edesc, etype=Some(t) }
+  | Cast(t,e)             -> begin match e.etype with (* Incomplete *)
+                                | Some(t) -> Some(t)
+                                | _ -> Error.malformed_expression e end
+  | Type(tp)              -> Some(tp)
+  | ClassOf(tp)           -> Some(tp)
+  | Instanceof(e,t)       -> Some(Primitive(Boolean))
+  | VoidClass             -> Some(Void)
+  in { exp with etype=t }
 
-let rec infix_typing e1 op e2 = match op with    (* TODO *)
-  | Op_cor   -> match (e1.etype, e2.etype) with 
-                | (Primitive(Boolean), Primitive(Boolean)) -> Primitive(Boolean)
-                | _ -> raise MalformedExpression("|| operator with non boolean types")
-  | Op_cand  -> match (e1.etype, e2.etype) with 
-                | (Primitive(Boolean), Primitive(Boolean)) -> Primitive(Boolean)
-                | _ -> raise MalformedExpression("&& operator with non boolean types")
-  | Op_or    -> "|"
-  | Op_and   -> "&"
-  | Op_xor   -> "^"
-  | Op_eq    -> match (e1.etype, e2.etype) with 
-                | (Void, _) -> Primitive(Boolean)
-                | (_, Void) -> Primitive(Boolean)
-                | _ -> raise MalformedExpression("== operator with void operand")
-  | Op_ne    -> match (e1.etype, e2.etype) with 
-                | (Void, _) -> Primitive(Boolean)
-                | (_, Void) -> Primitive(Boolean)
-                | _ -> raise MalformedExpression("!= operator with void operand")
-  | Op_gt    -> if check_numeric_operands ">" e1 e2 then begin match (e1.etype, e2.etype) with 
-                | (* TODO *)
-                end
-  | Op_lt    -> if check_numeric_operands "<" e1 e2 then begin match (e1.etype, e2.etype) with 
-                | (* TODO *)
-                end
-  | Op_ge    -> if check_numeric_operands ">=" e1 e2 then begin match (e1.etype, e2.etype) with 
-                | (* TODO *)
-                end
-  | Op_le    -> if check_numeric_operands "<=" e1 e2 then begin match (e1.etype, e2.etype) with 
-                | (* TODO *)
-                end
-  | Op_shl   -> "<<"
-  | Op_shr   -> ">>"
-  | Op_shrr  -> ">>>"
-  | Op_add   -> if check_numeric_operands "+" e1 e2 then begin match (e1.etype, e2.etype) with 
-                | (* TODO *)
-                end
-  | Op_sub   -> if check_numeric_operands "-" e1 e2 then begin match (e1.etype, e2.etype) with 
-                | (* TODO *)
-                end
-  | Op_mul   -> if check_numeric_operands "*" e1 e2 then begin match (e1.etype, e2.etype) with 
-                | (* TODO *)
-                end
-  | Op_div   -> if check_numeric_operands "/" e1 e2 then begin match (e1.etype, e2.etype) with 
-                | (* TODO *)
-                end
-  | Op_mod   -> if check_numeric_operands "%" e1 e2 then begin match (e1.etype, e2.etype) with 
-                | (* TODO *)    
-                end
-
-let check_numeric_operands opstr e1 e2 =
-    match (e1.etype, e2.etype) with 
-                | (Primitive(Boolean), Primitive(Boolean)) -> raise MalformedExpression(opstr^" operator with an operand that is not convertible to primitive numeric type")
-                | (Primitive, Primitive) -> true
-                | _ -> raise MalformedExpression(opstr^" operator with an operand that is not convertible to primitive numeric type")
-
-let rec assign_typing e1 op e2 = match op with    (* TODO *)
-  | Assign  -> "="
-  | Ass_add -> "+="
-  | Ass_sub -> "-="
-  | Ass_mul -> "*="
-  | Ass_div -> "/="
-  | Ass_mod -> "%="
-  | Ass_shl -> "<<="
-  | Ass_shr -> ">>="
-  | Ass_shrr-> ">>>="
-  | Ass_and -> "&="
-  | Ass_xor -> "^="
-  | Ass_or  -> "|="
-
-let rec prefix_typing e op = match op with    (* TODO *)
-  | Op_not -> "!"
-  | Op_neg -> "-"
-  | Op_incr -> "++"
-  | Op_decr -> "--"
-  | Op_bnot -> "~"
-  | Op_plus -> "+"
-
-let rec postfix_typing op e = match op with     (* TODO *)
-  | Incr    ->
-  | Decr    ->
-
-let rec if_typing c e1 e2 =
-    (* TODO *)
-let rec val_typing v =
-    (* TODO *)
-let rec array_typing e l =
-    (* TODO *)
-*)
 
 let rec class_env ast =
   let rec methods_env = function
     | [] -> Env.initial() 
     | h::t -> let env = methods_env t
               and key = h.mname
-              in if Env.mem env key then raise (EnvironmentException("Method "^key^" defined more than once"))
+              in if Env.mem env key then Error.environment_duplicate key
               else Env.define env key h.mreturntype
   in let type_env = function
     | Class(c) -> methods_env c.cmethods
-    | Inter -> raise (EnvironmentException("Not implemented"))
+    | Inter -> Error.not_implemented "Interface environment" Location.none
   in let tl = ast.type_list
   in let rec type_list_env = function
     | [] -> Env.initial()
     | h::t -> let env = type_list_env t
               and key = h.id
-              in if Env.mem env key then raise (EnvironmentException("Class "^key^" defined more than once"))
+              in if Env.mem env key then Error.environment_duplicate key
               else Env.define env key (type_env h.info)
   in type_list_env tl
 
@@ -181,7 +152,7 @@ let rec statement_check s m t env =
     | While(cond,s)        -> (statement_check s m t env)
     | If(cond,s1,Some(s2)) -> (statement_check s1 m t env) && (statement_check s2 m t env)
     | If(cond,s,None)      -> statement_check s m t env
-    | Return(None)         -> begin match find (find env t.id) m.mname with Void -> true | _ -> (Error.return m) end  (* Tested -> OK *)
+    | Return(None)         -> begin match find (find env t.id) m.mname with Void -> true | _ -> (Error.wrong_return m) end  (* Tested -> OK *)
     | Expr(exp)            -> expr_check exp
 
 (*    | For of (Type.t option * string * expression option) list * expression option * expression list * statement TODO *)
@@ -206,7 +177,7 @@ let check_class ast =
     | m::u -> (body_check m.mbody m t) && (method_check u t)
   in let type_check t = match t.info with
     | Class(c) -> method_check c.cmethods t
-    | Inter -> raise (EnvironmentException("Not implemented"))
+    | Inter -> Error.not_implemented "Interface cheking" Location.none
   in let tl = ast.type_list
   in let rec type_list_check = function
      | [] -> true

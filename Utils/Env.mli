@@ -17,5 +17,11 @@ val define : ('a,'b) t -> 'a -> 'b -> ('a,'b) t
 (* iterate a function over all the bindings of the environment *)
 val iter : ('a * 'b -> unit) -> ('a,'b) t -> unit
 
+(* Merge two environments *)
+val merge : ('a,'b) t -> ('a,'b) t -> ('a,'b) t
+
 (* print function for the class environment *)
 val print_class_env : (string, (string, Type.t) t) t -> unit
+
+(* print function for the method table *)
+val print_method_table : (string, AST.astmethod) t -> unit

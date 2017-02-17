@@ -2,6 +2,7 @@ open AST
 open Type
 open Env
 
+
 let rec check_numeric_operand expl op = let check exp = match exp.etype with
   | Some(Primitive(Boolean)) -> Error.non_numeric_operand exp op
   | Some(Primitive(_)) -> true

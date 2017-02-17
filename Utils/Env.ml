@@ -13,6 +13,15 @@ let define env n t =
 
 let iter f = Hashtbl.iter (fun s i -> f (s,i))
 
+(* http://pleac.sourceforge.net/pleac_ocaml/hashes.html *)
+let assoc_list2hashtbl assoc_list = 
+  let h = Hashtbl.create 0 in
+  List.iter (fun (k,v) -> Hashtbl.replace h k v) assoc_list ;
+  h
+let hashtbl2assoc_list h = Hashtbl.fold (fun key value l -> (key, value) :: l) h []
+
+let merge env1 env2 = assoc_list2hashtbl (hashtbl2assoc_list env1 @ hashtbl2assoc_list env2)
+
 let print_class_env env =
   let print_methods_env env =
     print_endline "  Methods :";
@@ -21,3 +30,8 @@ let print_class_env env =
   in iter (fun (key,value) -> 
   print_endline ("Class : "^key);
   print_methods_env value) env
+
+let print_method_table env =
+  iter (fun (key,value) -> 
+  print_endline ("Key in table : "^key);
+  print_endline ("Name in AST : "^value.AST.mname)) env

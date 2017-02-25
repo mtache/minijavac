@@ -12,4 +12,4 @@ val parser : AST.t -> (AST.astclass -> string -> 'a) -> 'a list
 (*
  * Entry point.
  *)
-val init : AST.t -> unit
+val init : AST.t -> ((string, AST.astmethod) Env.t) * ((string, (string, AST.astattribute) Env.t) Env.t)

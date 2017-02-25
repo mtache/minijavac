@@ -1,11 +1,10 @@
 let execute lexbuf verbose = 
   try 
     let ast = Parser.compilationUnit Lexer.token lexbuf in
-    let env = Typing.class_env ast in
+    let (method_table, object_descriptor_table) = Compile.init ast in
     print_endline "successfull parsing";
-    if verbose then AST.print_program ast; Env.print_class_env env;
-    if Typing.check_class ast then print_endline "successfull check (unimplemented)";
-    Compile.init ast;
+    if verbose then AST.print_program ast;
+    if Typing.check_class ast method_table object_descriptor_table then print_endline "successfull check (unimplemented)";
   with 
     | Parser.Error ->
       print_string "Syntax error: ";

@@ -98,26 +98,6 @@ let rec exp_typing exp =
   | VoidClass             -> Some(Void)
   in { exp with etype=t }
 
-
-let rec class_env ast =
-  let rec methods_env = function
-    | [] -> Env.initial() 
-    | h::t -> let env = methods_env t
-              and key = h.mname
-              in if Env.mem env key then Error.environment_duplicate key
-              else Env.define env key h.mreturntype
-  in let type_env = function
-    | Class(c) -> methods_env c.cmethods
-    | Inter -> Error.not_implemented "Interface environment" Location.none
-  in let tl = ast.type_list
-  in let rec type_list_env = function
-    | [] -> Env.initial()
-    | h::t -> let env = type_list_env t
-              and key = h.id
-              in if Env.mem env key then Error.environment_duplicate key
-              else Env.define env key (type_env h.info)
-  in type_list_env tl
-
 let rec expr_check exp =
   let default = true in
   match exp.edesc with
@@ -145,20 +125,20 @@ let rec expr_check exp =
   | VoidClass             -> default (* TODO *)
 
 
-let rec statement_check s m t env =
+let rec statement_check s m t method_table object_descriptor_table =
    let default = true in
-   let rec list_check l = match l with [] -> true | h::u -> (statement_check h m t env) && (list_check u)
+   let rec list_check l = match l with [] -> true | h::u -> (statement_check h m t method_table object_descriptor_table) && (list_check u)
    in match s with
     | Block(sl)            -> list_check sl
-    | While(cond,s)        -> (statement_check s m t env)
-    | If(cond,s1,Some(s2)) -> (statement_check s1 m t env) && (statement_check s2 m t env)
-    | If(cond,s,None)      -> statement_check s m t env
-    | Return(None)         -> begin match find (find env t.id) m.mname with Void -> true | _ -> (Error.wrong_return m) end  (* Tested -> OK *)
+    | While(cond,s)        -> (statement_check s m t method_table object_descriptor_table)
+    | If(cond,s1,Some(s2)) -> (statement_check s1 m t method_table object_descriptor_table) && (statement_check s2 m t method_table object_descriptor_table)
+    | If(cond,s,None)      -> statement_check s m t method_table object_descriptor_table
+    | Return(None)         -> default (* begin match find method_table t.id^"_"^m.mname with me when me.mreturntype==Void -> true | _ -> (Error.wrong_return m) end  Tested -> OK *)
     | Expr(exp)            -> expr_check exp
 
 (*    | For of (Type.t option * string * expression option) list * expression option * expression list * statement TODO *)
-    | For(_,Some(exp),_,s)         -> (statement_check s m t env)
-    | For(_,None,_,s)         -> (statement_check s m t env)
+    | For(_,Some(exp),_,s)         -> (statement_check s m t method_table object_descriptor_table)
+    | For(_,None,_,s)         -> (statement_check s m t method_table object_descriptor_table)
  (*   | Try of statement list * (argument * statement list) list * statement list TODO *)
     | Try(sl1,l,sl2)       -> (list_check sl1) && (list_check sl2)
 (*  | VarDecl of (Type.t * string * expression option) list TODO *) 
@@ -168,11 +148,10 @@ let rec statement_check s m t env =
     | Throw(exp)           -> default (* TODO *)
 
 
-let check_class ast =
-  let env = class_env ast
-  in let rec body_check sl m t = match sl with
+let check_class ast method_table object_descriptor_table =
+  let rec body_check sl m t = match sl with
     | [] -> true
-    | s::u -> (statement_check s m t env) && (body_check u m t)
+    | s::u -> (statement_check s m t method_table object_descriptor_table) && (body_check u m t)
   in let rec method_check ml t = match ml with
     | [] -> true
     | m::u -> (body_check m.mbody m t) && (method_check u t)

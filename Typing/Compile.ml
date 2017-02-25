@@ -34,4 +34,4 @@ let parser ast f =
   let init ast =
     let method_table = concat_method_tables (parser ast build_method_table)
     and object_descriptor_table = build_object_descriptor_table (parser ast build_object_descriptor)
-    in Env.print_method_table method_table;
+    in (method_table, object_descriptor_table);

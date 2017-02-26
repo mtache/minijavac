@@ -16,6 +16,7 @@ type t =
   | Unknown_method of string
   | Wrong_throw of astmethod
   | Unknown_class of string
+  | Invalid_operand of expression * infix_op * expression
 
 exception Error of t * Location.t;;
 
@@ -52,6 +53,8 @@ let report_error = function
       print_endline ("Wrong throw block in method: "^m.mname)
   | Unknown_class c ->
       print_endline ("Unknown class : "^c)
+  | Invalid_operand (e1,op,e2) ->
+    print_endline("Invalid operands type :: e1 : "^(string_of_expression e1)^" operator "^(string_of_infix_op op)^" e2 : "^(string_of_expression e2))
 
 let illegal_char char loc =
   raise (Error(Illegal_character char, loc))
@@ -96,3 +99,6 @@ let wrong_throw m =
 
 let unknown_class id loc = 
   raise (Error (Unknown_class id, loc))
+
+let invalid_operand e1 op e2 loc =
+  raise (Error (Invalid_operand (e1,op,e2), loc))

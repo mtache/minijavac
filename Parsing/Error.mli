@@ -21,3 +21,4 @@ val unknown_attribute : string -> Location.t -> 'a
 val unknown_method : string -> Location.t -> 'a
 val wrong_throw : AST.astmethod -> 'a
 val unknown_class : string -> Location.t -> 'a
+val invalid_operand : AST.expression -> AST.infix_op -> AST.expression -> Location.t -> 'a

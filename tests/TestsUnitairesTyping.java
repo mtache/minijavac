@@ -4,6 +4,7 @@ public class A {
     public void m2() {
         m1();
         (new Ext()).mext();
+        1 + true;
     }
 }
 

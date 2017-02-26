@@ -3,6 +3,7 @@ open Type
 
 let rec check_numeric_operand expl op = let check exp = match exp.etype with
   | Some(Primitive(Boolean)) -> Error.non_numeric_operand exp op
+  | Some(Primitive(Char)) -> Error.non_numeric_operand exp op
   | Some(Primitive(_)) -> true
   | _ -> Error.non_numeric_operand exp op
   in match expl with [] -> true | h::t -> (check h) && (check_numeric_operand t op)
@@ -28,7 +29,7 @@ let rec infix_typing e1 op e2 = match op with    (* TODO *)
   | Op_shl   -> None    (* TODO *)
   | Op_shr   -> None    (* TODO *)
   | Op_shrr  -> None    (* TODO *)
-  | Op_add   -> if check_numeric_operand (e1::[e2]) op then None else None     (* TODO *)
+  | Op_add   -> if ((check_numeric_operand (e1::[e2]) op) && (e1.etype = e2.etype)) then e1.etype else Error.invalid_operand e1 op e2 e1.eloc
   | Op_sub   -> if check_numeric_operand (e1::[e2]) op then None else None     (* TODO *)
   | Op_mul   -> if check_numeric_operand (e1::[e2]) op then None else None     (* TODO *)
   | Op_div   -> if check_numeric_operand (e1::[e2]) op then None else None     (* TODO *)
@@ -61,8 +62,17 @@ let rec postfix_typing e op = match op with     (* TODO *)
   | Decr    -> None    (* TODO *)
 
 let rec if_typing c e1 e2 = None   (* TODO *)
-let rec val_typing v = None        (* TODO *)
+
 let rec array_typing e l = None    (* TODO *)
+
+let rec val_typing v = match v with
+  | String(value) -> None (* TODO special class, not an actual primitive *)
+  | Int(value) ->  print_endline ("int : "^value); Some(Primitive(Int))
+  | Float(value) -> print_endline ("float : "^value); Some(Primitive(Float))
+  | Char(Some(value)) -> Some(Primitive(Char))
+  | Char(None) -> Some(Primitive(Char))
+  | Null -> None (* TODO special value, not an actual primitive *)
+  | Boolean(value) -> Some(Primitive(Boolean))
 
 let rec exp_typing exp classname method_table object_descriptor_table =
   let t=match exp.edesc with
@@ -77,16 +87,18 @@ let rec exp_typing exp classname method_table object_descriptor_table =
   | NewArray(t,l,Some(e)) -> None    (* TODO *)
   | NewArray(t,l,None)    -> None    (* TODO *)
   | ArrayInit(l)          -> None    (* TODO *)
-  | Name(id)              -> None (* TODO *)
+  | Name(id)              -> None (* TODO Check if the name refers to a declared variable, in this case we know its type *)
   | Attr(o,id)            -> let attr_env = (Env.find object_descriptor_table classname) in
                               if Env.mem attr_env id then let attr = Env.find attr_env id in Some(attr.atype) else Error.unknown_attribute id exp.eloc
   | Array(e,el)           -> None    (* TODO *)
-  | New(None,p,_)         -> if Env.mem object_descriptor_table (String.concat "." p) then Some(Ref(Type.extract_type p)) else Error.unknown_class (String.concat "." p) exp.eloc (*TODO : Return correct type *)
-  | New(Some o,p,_)       -> None    (* TODO *)
+  | New(None,p,_)         -> if Env.mem object_descriptor_table (String.concat "." p) then Some(Ref(Type.extract_type p)) else Error.unknown_class (String.concat "." p) exp.eloc
+  | New(Some o,p,_)       -> None    (* Not implemented syntax for inner classes ... *)
   | Val(v)                -> val_typing v
   | If(c,e1,e2)           -> if_typing c e1 e2
   | CondOp(c,e1,e2)       -> if_typing c e1 e2 (* TODO check if it is the same case than if *)
-  | Op(e1,op,e2)          -> infix_typing e1 op e2
+  | Op(e1,op,e2)          -> exp_typing e1 classname method_table object_descriptor_table;
+                             exp_typing e2 classname method_table object_descriptor_table;
+                             infix_typing e1 op e2
   | AssignExp(e1,op,e2)   -> assign_typing e1 op e2
   | Post(e,op)            -> postfix_typing e op
   | Pre(op,e)             -> prefix_typing op e

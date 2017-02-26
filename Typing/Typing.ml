@@ -125,5 +125,6 @@ let execute method_table object_descriptor_table =
   in let rec method_check ml classname = match ml with
     | [] -> ()
     | m::others -> body_check m.mbody m classname; method_check others classname;
-  in let iter_env (id,method_ast) = body_check method_ast.mbody method_ast "no"
+  in let iter_env (id,method_ast) = let classname = List.hd (Str.split_delim (Str.regexp "_") id) in
+          body_check method_ast.mbody method_ast classname 
   in Env.iter iter_env method_table;

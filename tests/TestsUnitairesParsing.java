@@ -10,7 +10,7 @@ public class A {
 }
 abstract class B extends C {
     B() { super(); }
-    private A mthis () throws tuty.A, tre.tr.b {
+    private A mthis () throws tuty.A, tre.tr.b {$
 	int a, b;
 	{
 	    int c = 18;

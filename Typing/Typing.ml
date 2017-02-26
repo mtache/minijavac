@@ -98,26 +98,32 @@ let rec exp_typing exp classname method_table object_descriptor_table =
 
 let execute method_table object_descriptor_table =
   let rec statement_check statement method_ast classname =
-   let iter other = statement_check other method_ast classname
+   let exp_check exp = exp_typing exp classname method_table object_descriptor_table
+   in let iter other = statement_check other method_ast classname
    in let rec list_check l = match l with [] -> () | h::t -> iter h; list_check t;
    in match statement with
+
+    (* To be tested *)
+    | Expr(exp)            -> exp_check exp
+    | Return(Some(exp))    -> exp_check exp; begin match exp.etype with Some(t) when t = method_ast.mreturntype -> () | _ -> (Error.wrong_return method_ast) end
+    | Return(None)         -> begin match method_ast.mreturntype with Void -> () | _ -> (Error.wrong_return method_ast) end 
+    (* To be tested - Only check if ref_type is inside the throw block, not that it is actually an exception *)
+    | Throw(exp)           -> exp_check exp; begin match exp.etype with Some(Ref(_)) -> () | _ -> (Error.wrong_throw method_ast) end
+    
+    (* TODO *)
+    | Nop                  -> () 
     | Block(sl)            -> list_check sl
     | While(cond,s)        -> iter s
     | If(cond,s1,Some(s2)) -> iter s1; iter s2
     | If(cond,s,None)      -> iter s
-    | Return(None)         -> () (* begin match find method_table t.id^"_"^m.mname with me when me.mreturntype==Void -> true | _ -> (Error.wrong_return m) end  Tested -> OK *)
-    | Expr(exp)            -> exp_typing exp classname method_table object_descriptor_table; ()
-(*    | For of (Type.t option * string * expression option) list * expression option * expression list * statement TODO *)
-    | For(_,Some(exp),_,s)    -> iter s
-    | For(_,None,_,s)         -> iter s
- (*   | Try of statement list * (argument * statement list) list * statement list TODO *)
+    (*  | VarDecl of (Type.t * string * expression option) list *) 
+    | VarDecl(l)           -> ()
+    (*    | For of (Type.t option * string * expression option) list * expression option * expression list * statement *)
+    | For(_,Some(exp),_,s) -> exp_check exp; iter s
+    | For(_,None,_,s)      -> iter s
+    (*   | Try of statement list * (argument * statement list) list * statement list *)
     | Try(sl1,l,sl2)       -> list_check sl1; list_check sl2
-(*  | VarDecl of (Type.t * string * expression option) list TODO *) 
-    | VarDecl(l)           -> () (* TODO *)
-    | Return(Some(exp))    -> () (* TODO *)
-    | Nop                  -> () (* TODO *)
-    | Throw(exp)           -> () (* TODO *)
-
+    (* END - TODO *)
   
   in let rec body_check sl method_ast classname = match sl with
     | [] -> ()

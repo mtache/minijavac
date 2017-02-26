@@ -19,3 +19,4 @@ val environment_duplicate : string -> 'a
 val not_implemented : string -> Location.t-> 'a
 val unknown_attribute : string -> Location.t -> 'a
 val unknown_method : string -> Location.t -> 'a
+val wrong_throw : AST.astmethod -> 'a

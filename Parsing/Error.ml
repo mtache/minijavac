@@ -14,7 +14,8 @@ type t =
   | Not_implemented of string
   | Unknown_attribute of string
   | Unknown_method of string
-
+  | Wrong_throw of astmethod
+  
 exception Error of t * Location.t;;
 
 (* Les erreurs. *)
@@ -43,8 +44,11 @@ let report_error = function
       print_endline (key^" is defined more than once")
   | Not_implemented s ->
       print_endline ("This has not been implemented : "^s)
-  | Unknown_attribute a -> print_endline ("Unknown attribute : "^a)
   | Unknown_method m -> print_endline ("Unknown method : "^m)
+  | Unknown_attribute a ->
+      print_endline ("Unknown attribute : "^a)
+  | Wrong_throw m ->
+      print_endline ("Wrong throw block in method: "^m.mname)
 
 let illegal_char char loc =
   raise (Error(Illegal_character char, loc))
@@ -84,3 +88,5 @@ let unknown_attribute id loc =
 
 let unknown_method id loc =
   raise (Error (Unknown_method id, loc))
+let wrong_throw m =
+  raise (Error (Wrong_throw m, m.mloc))

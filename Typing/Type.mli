@@ -11,7 +11,7 @@ type primitive =
 and ref_type = {
     tpath : string list ;
     tid : string ;
-  }      
+    }      
 
 type t =
   | Void

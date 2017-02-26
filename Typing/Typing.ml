@@ -69,16 +69,19 @@ let rec exp_typing exp classname method_table object_descriptor_table =
   (*
   | Call of expression option * string * expression list ## 15.12 doc
    *)
-  | Call(Some(e),s,l)     -> None    (* TODO *)
+  | Call(Some(e),id,params) -> exp_typing e classname method_table object_descriptor_table;
+                                begin match e.etype with
+                                  | Some(et) -> if Env.mem method_table ((Type.stringOf et)^"_"^id) then let meth = Env.find method_table ((Type.stringOf et)^"_"^id) in Some(meth.mreturntype) else Error.unknown_method id exp.eloc
+                                  | None -> None end
   | Call(None,id,params)  -> if Env.mem method_table (classname^"_"^id) then let meth = Env.find method_table (classname^"_"^id) in Some(meth.mreturntype) else Error.unknown_method id exp.eloc
   | NewArray(t,l,Some(e)) -> None    (* TODO *)
   | NewArray(t,l,None)    -> None    (* TODO *)
   | ArrayInit(l)          -> None    (* TODO *)
-  | Name(id)              -> Some(Ref(Type.mk_type [] id)) (* TODO check *)
+  | Name(id)              -> None (* TODO *)
   | Attr(o,id)            -> let attr_env = (Env.find object_descriptor_table classname) in
                               if Env.mem attr_env id then let attr = Env.find attr_env id in Some(attr.atype) else Error.unknown_attribute id exp.eloc
   | Array(e,el)           -> None    (* TODO *)
-  | New(None,p,_)         -> None    (* TODO *)
+  | New(None,p,_)         -> if Env.mem object_descriptor_table (String.concat "." p) then Some(Ref(Type.extract_type p)) else Error.unknown_class (String.concat "." p) exp.eloc (*TODO : Return correct type *)
   | New(Some o,p,_)       -> None    (* TODO *)
   | Val(v)                -> val_typing v
   | If(c,e1,e2)           -> if_typing c e1 e2

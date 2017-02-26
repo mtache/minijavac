@@ -3,7 +3,10 @@ public class A {
 
     public void m2() {
         m1();
-        //m3();
-        this.m1();
+        (new Ext()).mext();
     }
+}
+
+public class Ext {
+    public int mext() {}
 }

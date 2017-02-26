@@ -17,3 +17,4 @@ val non_boolean_operand : AST.expression -> AST.infix_op -> 'a
 val malformed_expression : AST.expression -> 'a
 val environment_duplicate : string -> 'a
 val not_implemented : string -> Location.t-> 'a
+val unknown_attribute : string -> 'a

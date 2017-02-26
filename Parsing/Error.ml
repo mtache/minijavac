@@ -12,6 +12,7 @@ type t =
   | Malformed_expression of expression
   | Environment_duplicate of string
   | Not_implemented of string
+  | Unknown_attribute of string
 
 exception Error of t * Location.t;;
 
@@ -41,6 +42,7 @@ let report_error = function
       print_endline (key^" is defined more than once")
   | Not_implemented s ->
       print_endline ("This has not been implemented : "^s)
+  | Unknown_attribute a -> print_endline ("Unknown attribute : "^a)
 
 let illegal_char char loc =
   raise (Error(Illegal_character char, loc))
@@ -74,3 +76,6 @@ let environment_duplicate k =
 
 let not_implemented k l =
   raise (Error (Not_implemented k, l))
+
+let unknown_attribute id =
+  raise (Error (Unknown_attribute id, Location.none))

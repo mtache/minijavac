@@ -8,7 +8,7 @@ val initial : unit -> ('a,'b) t
 (* get the value associated to a key *)
 val find : ('a,'b) t -> 'a -> 'b
 
-(* is the key associated to a value is the environment *)
+(* is the key associated to a value in the environment *)
 val mem : ('a,'b) t -> 'a -> bool
 
 (* define a key with the value associated *)

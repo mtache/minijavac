@@ -66,8 +66,7 @@ let rec if_typing c e1 e2 = None   (* TODO *)
 let rec val_typing v = None        (* TODO *)
 let rec array_typing e l = None    (* TODO *)
 
-
-let rec exp_typing exp =
+let rec exp_typing exp classname method_table object_descriptor_table =
   let t=match exp.edesc with
   (*
   | Call of expression option * string * expression list ## 15.12 doc
@@ -78,7 +77,8 @@ let rec exp_typing exp =
   | NewArray(t,l,None)    -> None    (* TODO *)
   | ArrayInit(l)          -> None    (* TODO *)
   | Name(id)              -> Some(Ref(Type.mk_type [] id)) (* TODO check *)
-  | Attr(o,id)            -> None    (* TODO *)
+  | Attr(o,id)            -> let attr_env = (Env.find object_descriptor_table classname) in
+                              if Env.mem attr_env id then let attr = Env.find attr_env id in Some(attr.atype) else Error.unknown_attribute id
   | Array(e,el)           -> None    (* TODO *)
   | New(None,p,_)         -> None    (* TODO *)
   | New(Some o,p,_)       -> None    (* TODO *)
@@ -98,32 +98,6 @@ let rec exp_typing exp =
   | VoidClass             -> Some(Void)
   in { exp with etype=t }
 
-let rec expr_check exp =
-  let default = true in
-  match exp.edesc with
-  | Call(Some(e),s,l)     -> default (* TODO *)
-  | Call(None,s,l)        -> default (* TODO *)
-  | NewArray(t,l,Some(e)) -> default (* TODO *)
-  | NewArray(t,l,None)    -> default (* TODO *)
-  | ArrayInit(l)          -> default (* TODO *)
-  | Name(id)              -> default (* TODO *)
-  | Attr(o,id)            -> default (* TODO *)
-  | Array(e,el)           -> default (* TODO *)
-  | New(None,p,_)         -> default (* TODO *)
-  | New(Some o,p,_)       -> default (* TODO *)
-  | Val(v)                -> default (* TODO *)
-  | If(c,e1,e2)           -> default (* TODO *)
-  | CondOp(c,e1,e2)       -> default (* TODO *)
-  | Op(e1,op,e2)          -> default (* TODO *)
-  | AssignExp(e1,op,e2)   -> default (* TODO *)
-  | Post(e,op)            -> default (* TODO *)
-  | Pre(op,e)             -> default (* TODO *)
-  | Cast(t,e)             -> default (* TODO *)
-  | Type(t)               -> default (* TODO *)
-  | ClassOf(t)            -> default (* TODO *)
-  | Instanceof(e,t)       -> default (* TODO *)
-  | VoidClass             -> default (* TODO *)
-
 
 let rec statement_check s m t method_table object_descriptor_table =
    let default = true in
@@ -134,7 +108,7 @@ let rec statement_check s m t method_table object_descriptor_table =
     | If(cond,s1,Some(s2)) -> (statement_check s1 m t method_table object_descriptor_table) && (statement_check s2 m t method_table object_descriptor_table)
     | If(cond,s,None)      -> statement_check s m t method_table object_descriptor_table
     | Return(None)         -> default (* begin match find method_table t.id^"_"^m.mname with me when me.mreturntype==Void -> true | _ -> (Error.wrong_return m) end  Tested -> OK *)
-    | Expr(exp)            -> expr_check exp
+    | Expr(exp)            -> exp_typing exp method_table object_descriptor_table
 
 (*    | For of (Type.t option * string * expression option) list * expression option * expression list * statement TODO *)
     | For(_,Some(exp),_,s)         -> (statement_check s m t method_table object_descriptor_table)

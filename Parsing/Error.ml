@@ -13,6 +13,7 @@ type t =
   | Environment_duplicate of string
   | Not_implemented of string
   | Unknown_attribute of string
+  | Unknown_method of string
 
 exception Error of t * Location.t;;
 
@@ -43,6 +44,7 @@ let report_error = function
   | Not_implemented s ->
       print_endline ("This has not been implemented : "^s)
   | Unknown_attribute a -> print_endline ("Unknown attribute : "^a)
+  | Unknown_method m -> print_endline ("Unknown method : "^m)
 
 let illegal_char char loc =
   raise (Error(Illegal_character char, loc))
@@ -77,5 +79,8 @@ let environment_duplicate k =
 let not_implemented k l =
   raise (Error (Not_implemented k, l))
 
-let unknown_attribute id =
-  raise (Error (Unknown_attribute id, Location.none))
+let unknown_attribute id loc =
+  raise (Error (Unknown_attribute id, loc))
+
+let unknown_method id loc =
+  raise (Error (Unknown_method id, loc))

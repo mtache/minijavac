@@ -3,4 +3,4 @@ true: use_menhir
 true: warn_a
 true: package(ANSITerminal)
 true: explain
-true: package(Str)
+true: package(str)

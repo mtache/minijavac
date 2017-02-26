@@ -112,9 +112,6 @@ type astattribute = {
       adefault : expression option;
       (*      aloc : Location.t;*)
     }
-      
-
-
 
 type qualified_name = string list
 

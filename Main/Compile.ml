@@ -45,9 +45,8 @@ let execute lexbuf verbose =
     let (method_table, object_descriptor_table) = init ast in
     print_endline "successfull parsing";
     if verbose then AST.print_program ast;
-    if Typing.check_class ast method_table object_descriptor_table
-    then print_endline "successfull typing check (unimplemented)"
-    else print_endline "unsuccessfull typing check (unimplemented)";
+    Typing.execute method_table object_descriptor_table;
+    print_endline "successfull typing check (unimplemented)"
     (* END - MAIN ALGORITHM *)
   with 
     | Parser.Error ->

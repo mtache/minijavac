@@ -10,7 +10,7 @@ public class A {
 }
 abstract class B extends C {
     B() { super(); }
-    private A mthis () throws tuty.A, tre.tr.b {$
+    private A mthis () throws tuty.A, tre.tr.b {
 	int a, b;
 	{
 	    int c = 18;
@@ -49,7 +49,20 @@ abstract class B extends C {
 	}
     }
 
-    Int matt4() { this.ab; }
+    Int matt4() { ab; }
 }
 static private class C extends A {}
+/*
+	A a;
+	a.method(); // Call(Some(Attr("a"),"method",[])
 
+	int test() {
+		return 1;
+	}
+	test(); // Call(None,"test",[])
+}
+
+
+a.b; // Attr(Name("a"),Name("b");
+a.b.c; // Attr(Attr(Name("a"),Name("b")),Name("c");
+*/

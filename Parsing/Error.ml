@@ -9,6 +9,7 @@ type t =
   | Wrong_return of astmethod
   | Non_numeric_operand of expression * infix_op
   | Non_boolean_operand of expression * infix_op
+  | Non_integral_operand of expression * infix_op
   | Malformed_expression of expression
   | Environment_duplicate of string
   | Not_implemented of string
@@ -37,11 +38,13 @@ let report_error = function
   | Wrong_return m ->
       print_endline ("Wrong return type in method: "^m.mname)
   | Non_numeric_operand (e,op) ->
-      print_endline ("The operand "^(string_of_expression e)^" is used with the operator "^(string_of_infix_op op)^" and is not convertible to primitive numeric type: ")
+      print_endline ("The operand "^(string_of_expression e)^" is used with the operator "^(string_of_infix_op op)^" and is not convertible to primitive numeric type")
+  | Non_integral_operand (e,op) ->
+      print_endline ("The operand "^(string_of_expression e)^" is used with the operator "^(string_of_infix_op op)^" and is not convertible to primitive integral type")
   | Non_boolean_operand (e,op) ->
-      print_endline ("The operand "^(string_of_expression e)^" is used with the operator "^(string_of_infix_op op)^" and is not of boolean type: ")
+      print_endline ("The operand "^(string_of_expression e)^" is used with the operator "^(string_of_infix_op op)^" and is not of boolean type")
   | Malformed_expression e ->
-      print_endline ("The expression "^(string_of_expression e)^" is malformed: ")
+      print_endline ("The expression "^(string_of_expression e)^" is malformed")
   | Environment_duplicate key ->
       print_endline (key^" is defined more than once")
   | Not_implemented s ->
@@ -50,7 +53,7 @@ let report_error = function
   | Unknown_attribute a ->
       print_endline ("Unknown attribute : "^a)
   | Wrong_throw m ->
-      print_endline ("Wrong throw block in method: "^m.mname)
+      print_endline ("Wrong throw block in method : "^m.mname)
   | Unknown_class c ->
       print_endline ("Unknown class : "^c)
   | Invalid_operand (e1,op,e2) ->
@@ -79,6 +82,9 @@ let non_numeric_operand e op =
 
 let non_boolean_operand e op =
   raise (Error (Non_boolean_operand (e,op), e.eloc))
+
+let non_integral_operand e op =
+  raise (Error (Non_integral_operand (e,op), e.eloc))
 
 let malformed_expression e =
   raise (Error (Malformed_expression e, e.eloc))

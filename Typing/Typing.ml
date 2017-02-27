@@ -1,39 +1,89 @@
 open AST
 open Type
 
+let rec check_integral_operand expl op = let check exp = match exp.etype with
+  | Some(Primitive(Boolean)) -> Error.non_integral_operand exp op
+  | Some(Primitive(Char)) -> Error.non_integral_operand exp op
+  | Some(Primitive(Float)) -> Error.non_integral_operand exp op
+  | Some(Primitive(Double)) -> Error.non_integral_operand exp op
+  | Some(Primitive(_)) -> ()
+  | _ -> Error.non_integral_operand exp op
+  in match expl with [] -> () | h::t -> check h; check_integral_operand t op
+
 let rec check_numeric_operand expl op = let check exp = match exp.etype with
   | Some(Primitive(Boolean)) -> Error.non_numeric_operand exp op
   | Some(Primitive(Char)) -> Error.non_numeric_operand exp op
-  | Some(Primitive(_)) -> true
+  | Some(Primitive(_)) -> ()
   | _ -> Error.non_numeric_operand exp op
-  in match expl with [] -> true | h::t -> (check h) && (check_numeric_operand t op)
+  in match expl with [] -> () | h::t -> check h; check_numeric_operand t op
 
 let rec check_boolean_operand expl op = let check exp = match exp.etype with
-  | Some(Primitive(Boolean)) -> true
+  | Some(Primitive(Boolean)) -> ()
   | _ -> Error.non_boolean_operand exp op
-  in match expl with [] -> true | h::t -> (check h) && (check_numeric_operand t op)
+  in match expl with [] -> () | h::t -> check h; check_boolean_operand t op
 
+let infix_numeric_typing e1 op e2 = check_numeric_operand (e1::[e2]) op; match e1.etype with
+   | t when t = e2.etype -> t
+   | t when t = Some(Primitive(Byte)) -> e2.etype
+   | t when t = Some(Primitive(Double)) -> t
+   | t1 when t1 = Some(Primitive(Short))  -> match e2.etype with
+                                            | t2 when t2 = Some(Primitive(Float))  -> t2
+                                            | t2 when t2 = Some(Primitive(Double)) -> t2
+                                            | t2 when t2 = Some(Primitive(Long))   -> t2
+                                            | t2 when t2 = Some(Primitive(Int))   -> t2
+                                            | _ -> t1
+   | t1 when t1 = Some(Primitive(Int)) -> match e2.etype with
+                                            | t2 when t2 = Some(Primitive(Float))  -> t2
+                                            | t2 when t2 = Some(Primitive(Double)) -> t2
+                                            | t2 when t2 = Some(Primitive(Long))   -> t2
+                                            | _ -> t1
+   | t1 when t1 = Some(Primitive(Long)) -> match e2.etype with
+                                            | t2 when t2 = Some(Primitive(Float))  -> t2
+                                            | t2 when t2 = Some(Primitive(Double)) -> t2
+                                            | _ -> t1
+   | t1 when t1 = Some(Primitive(Float))  -> match e2.etype with
+                                            | t2 when t2 = Some(Primitive(Double)) -> t2
+                                            | _ -> t1
 
 let rec infix_typing e1 op e2 = match op with    (* TODO *)
-  | Op_cor   -> if check_boolean_operand (e1::[e2]) op then None else None    (* TODO *)
-  | Op_cand  -> if check_boolean_operand (e1::[e2]) op then None else None   (* TODO *)
+  (* 15.17 Multiplicative Operators 491 *)  (* To be tested *)
+  | Op_mul   -> infix_numeric_typing e1 op e2
+  | Op_div   -> infix_numeric_typing e1 op e2
+  | Op_mod   -> infix_numeric_typing e1 op e2
+  (* 15.18 Additive Operators 496 *)  (* To be tested *)
+  | Op_add   -> infix_numeric_typing e1 op e2 (* TODO - Handle when operands are strings *)
+  (* if ((check_numeric_operand (e1::[e2]) op) && (e1.etype = e2.etype)) then e1.etype else Error.invalid_operand e1 op e2 e1.eloc *)
+  | Op_sub   -> infix_numeric_typing e1 op e2
+  (* 15.19 Shift Operators 502 *) (* To be tested *)
+  | Op_shl   -> check_integral_operand (e1::[e2]) op; e1.etype;
+  | Op_shr   -> check_integral_operand (e1::[e2]) op; e1.etype;
+  | Op_shrr  -> check_integral_operand (e1::[e2]) op; e1.etype;
+  (* 15.20 Relational Operators 503 *) (* To be tested *)
+  | Op_gt    -> check_numeric_operand (e1::[e2]) op; Some(Primitive(Boolean))
+  | Op_lt    -> check_numeric_operand (e1::[e2]) op; Some(Primitive(Boolean))
+  | Op_ge    -> check_numeric_operand (e1::[e2]) op; Some(Primitive(Boolean))
+  | Op_le    -> check_numeric_operand (e1::[e2]) op; Some(Primitive(Boolean))
+  (* 15.21 Equality Operators 505 *) (* To be tested *)
+  | Op_eq    -> begin match e1.etype, e2.etype with
+                  | Some(Primitive(Boolean)), Some(Primitive(Boolean)) -> Some(Primitive(Boolean))
+                  | Some(Ref(_)), Some(Ref(_)) -> Some(Primitive(Boolean))
+                  | Some(Ref(_)), Some(Void) -> Some(Primitive(Boolean))
+                  | Some(Void), Some(Ref(_)) -> Some(Primitive(Boolean))
+                  | _, _ -> infix_numeric_typing e1 op e2 end
+  | Op_ne    -> begin match e1.etype, e2.etype with
+                  | Some(Primitive(Boolean)), Some(Primitive(Boolean)) -> Some(Primitive(Boolean))
+                  | Some(Ref(_)), Some(Ref(_)) -> Some(Primitive(Boolean))
+                  | Some(Ref(_)), Some(Void) -> Some(Primitive(Boolean))
+                  | Some(Void), Some(Ref(_)) -> Some(Primitive(Boolean))
+                  | _, _ -> infix_numeric_typing e1 op e2 end
+  (* 15.22 Bitwise and Logical Operators 508 *)
   | Op_or    -> None    (* TODO *)
-  | Op_and   -> None    (* TODO *)
   | Op_xor   -> None    (* TODO *)
-  | Op_eq    -> None    (* TODO *)
-  | Op_ne    -> None    (* TODO *)
-  | Op_gt    -> if check_numeric_operand (e1::[e2]) op then None else None     (* TODO *)
-  | Op_lt    -> if check_numeric_operand (e1::[e2]) op then None else None     (* TODO *)
-  | Op_ge    -> if check_numeric_operand (e1::[e2]) op then None else None     (* TODO *)
-  | Op_le    -> if check_numeric_operand (e1::[e2]) op then None else None     (* TODO *)
-  | Op_shl   -> None    (* TODO *)
-  | Op_shr   -> None    (* TODO *)
-  | Op_shrr  -> None    (* TODO *)
-  | Op_add   -> if ((check_numeric_operand (e1::[e2]) op) && (e1.etype = e2.etype)) then e1.etype else Error.invalid_operand e1 op e2 e1.eloc
-  | Op_sub   -> if check_numeric_operand (e1::[e2]) op then None else None     (* TODO *)
-  | Op_mul   -> if check_numeric_operand (e1::[e2]) op then None else None     (* TODO *)
-  | Op_div   -> if check_numeric_operand (e1::[e2]) op then None else None     (* TODO *)
-  | Op_mod   -> if check_numeric_operand (e1::[e2]) op then None else None     (* TODO *)
+  | Op_and   -> None    (* TODO *)
+  (* 15.23 Conditional-And Operator && 509 *)
+  | Op_cand  -> check_boolean_operand (e1::[e2]) op; None   (* TODO *)
+  (* 15.24 Conditional-Or Operator || 509 *)
+  | Op_cor   -> check_boolean_operand (e1::[e2]) op; None    (* TODO *)
 
 let rec assign_typing e1 op e2 = match op with    (* TODO *)
   | Assign  -> None    (* TODO *)
@@ -75,6 +125,7 @@ let rec val_typing v = match v with
   | Boolean(value) -> Some(Primitive(Boolean))
 
 let rec exp_typing exp classname method_table object_descriptor_table =
+  let rec iter exp = exp_typing exp classname method_table object_descriptor_table in
   let t=match exp.edesc with
   (*
   | Call of expression option * string * expression list ## 15.12 doc
@@ -94,20 +145,18 @@ let rec exp_typing exp classname method_table object_descriptor_table =
   | New(None,p,_)         -> if Env.mem object_descriptor_table (String.concat "." p) then Some(Ref(Type.extract_type p)) else Error.unknown_class (String.concat "." p) exp.eloc
   | New(Some o,p,_)       -> None    (* Not implemented syntax for inner classes ... *)
   | Val(v)                -> val_typing v
-  | If(c,e1,e2)           -> if_typing c e1 e2
-  | CondOp(c,e1,e2)       -> if_typing c e1 e2 (* TODO check if it is the same case than if *)
-  | Op(e1,op,e2)          -> exp_typing e1 classname method_table object_descriptor_table;
-                             exp_typing e2 classname method_table object_descriptor_table;
-                             infix_typing e1 op e2
-  | AssignExp(e1,op,e2)   -> assign_typing e1 op e2
-  | Post(e,op)            -> postfix_typing e op
-  | Pre(op,e)             -> prefix_typing op e
-  | Cast(t,e)             -> begin match e.etype with (* Incomplete *)
+  | If(c,e1,e2)           -> iter e1; iter e2; if_typing c e1 e2
+  | CondOp(c,e1,e2)       -> iter e1; iter e2; if_typing c e1 e2 (* TODO check if it is the same case than if *)
+  | Op(e1,op,e2)          -> iter e1; iter e2; infix_typing e1 op e2
+  | AssignExp(e1,op,e2)   -> iter e1; iter e2; assign_typing e1 op e2
+  | Post(e,op)            -> iter e; postfix_typing e op
+  | Pre(op,e)             -> iter e; prefix_typing op e
+  | Cast(t,e)             -> iter e; begin match e.etype with (* Incomplete *)
                                 | Some(t) -> Some(t)
                                 | _ -> Error.malformed_expression e end
   | Type(tp)              -> Some(tp)
   | ClassOf(tp)           -> Some(tp)
-  | Instanceof(e,t)       -> Some(Primitive(Boolean))
+  | Instanceof(e,t)       -> iter e; Some(Primitive(Boolean))
   | VoidClass             -> Some(Void)
   in exp.etype <- t
 

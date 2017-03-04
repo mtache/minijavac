@@ -9,6 +9,9 @@ public class A {
         55 >> 3;
         true && false;
         return;
+        Ext ext = new Ext();
+        ext.mext();
+        { Ext ext2 = new Ext(); }
     }
 }
 

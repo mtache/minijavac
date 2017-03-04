@@ -124,21 +124,20 @@ let rec val_typing v = match v with
   | Null -> None (* TODO special value, not an actual primitive *)
   | Boolean(value) -> Some(Primitive(Boolean))
 
-let rec exp_typing exp classname method_table object_descriptor_table =
-  let rec iter exp = exp_typing exp classname method_table object_descriptor_table in
+let rec exp_typing exp classname method_table object_descriptor_table var_env =
+  let rec iter exp = exp_typing exp classname method_table object_descriptor_table var_env in
   let t=match exp.edesc with
   (*
   | Call of expression option * string * expression list ## 15.12 doc
    *)
-  | Call(Some(e),id,params) -> exp_typing e classname method_table object_descriptor_table;
-                                begin match e.etype with
+  | Call(Some(e),id,params) -> iter e; begin match e.etype with
                                   | Some(et) -> if Env.mem method_table ((Type.stringOf et)^"_"^id) then let meth = Env.find method_table ((Type.stringOf et)^"_"^id) in Some(meth.mreturntype) else Error.unknown_method id exp.eloc
                                   | None -> None end
   | Call(None,id,params)  -> if Env.mem method_table (classname^"_"^id) then let meth = Env.find method_table (classname^"_"^id) in Some(meth.mreturntype) else Error.unknown_method id exp.eloc
   | NewArray(t,l,Some(e)) -> None    (* TODO *)
   | NewArray(t,l,None)    -> None    (* TODO *)
   | ArrayInit(l)          -> None    (* TODO *)
-  | Name(id)              -> None (* TODO Check if the name refers to a declared variable, in this case we know its type *)
+  | Name(id)              -> if Hashtbl.mem var_env id then let var_type, exp = Hashtbl.find var_env id in Some(var_type) else Error.unknown_variable id exp.eloc
   | Attr(o,id)            -> let attr_env = (Env.find object_descriptor_table classname) in
                               if Env.mem attr_env id then let attr = Env.find attr_env id in Some(attr.atype) else Error.unknown_attribute id exp.eloc
   | Array(e,el)           -> None    (* TODO *)
@@ -161,40 +160,41 @@ let rec exp_typing exp classname method_table object_descriptor_table =
   in exp.etype <- t
 
 let execute method_table object_descriptor_table =
-  let rec statement_check statement method_ast classname =
-   let exp_check exp = exp_typing exp classname method_table object_descriptor_table
-   in let iter other = statement_check other method_ast classname
-   in let rec list_check l = match l with [] -> () | h::t -> iter h; list_check t;
+  let rec statement_check statement method_ast classname var_env =
+   let exp_check exp = exp_typing exp classname method_table object_descriptor_table var_env
+   and iter other = statement_check other method_ast classname var_env
+   in let rec list_check s_list env = match s_list with [] -> () | h::t -> statement_check h method_ast classname env; list_check t env
+   and add_var var_list = match var_list with [] -> () | (var_type, id, exp)::t -> Hashtbl.add var_env id (var_type,exp); add_var t
    in match statement with
+    (* All good *)
+    | Nop                  -> ()
+    (* END - All good *)
 
     (* To be tested *)
     | Expr(exp)            -> exp_check exp
     | Return(Some(exp))    -> exp_check exp; begin match exp.etype with Some(t) when t = method_ast.mreturntype -> () | _ -> (Error.wrong_return method_ast) end
     | Return(None)         -> begin match method_ast.mreturntype with Void -> () | _ -> (Error.wrong_return method_ast) end 
+    | Block(sl)            -> list_check sl (Hashtbl.copy var_env) (* New block = new scope for variables ! *)
+    (*  | VarDecl of (Type.t * string * expression option) list *) 
+    | VarDecl(l)           -> add_var l
     (* To be tested - Only check if ref_type is inside the throw block, not that it is actually an exception *)
     | Throw(exp)           -> exp_check exp; begin match exp.etype with Some(Ref(_)) -> () | _ -> (Error.wrong_throw method_ast) end
+    (* END - To be tested *)
     
     (* TODO *)
-    | Nop                  -> () 
-    | Block(sl)            -> list_check sl
     | While(cond,s)        -> iter s
     | If(cond,s1,Some(s2)) -> iter s1; iter s2
     | If(cond,s,None)      -> iter s
-    (*  | VarDecl of (Type.t * string * expression option) list *) 
-    | VarDecl(l)           -> ()
     (*    | For of (Type.t option * string * expression option) list * expression option * expression list * statement *)
     | For(_,Some(exp),_,s) -> exp_check exp; iter s
     | For(_,None,_,s)      -> iter s
     (*   | Try of statement list * (argument * statement list) list * statement list *)
-    | Try(sl1,l,sl2)       -> list_check sl1; list_check sl2
+    | Try(sl1,l,sl2)       -> list_check sl1 (Hashtbl.copy var_env); list_check sl2 (Hashtbl.copy var_env)
     (* END - TODO *)
   
-  in let rec body_check sl method_ast classname = match sl with
+  in let rec body_check sl method_ast classname var_env = match sl with
     | [] -> ()
-    | s::others -> statement_check s method_ast classname; body_check others method_ast classname;
-  in let rec method_check ml classname = match ml with
-    | [] -> ()
-    | m::others -> body_check m.mbody m classname; method_check others classname;
+    | s::others -> statement_check s method_ast classname var_env; body_check others method_ast classname var_env
   in let iter_env (id,method_ast) = let classname = List.hd (Str.split_delim (Str.regexp "_") id) in
-          body_check method_ast.mbody method_ast classname 
+          body_check method_ast.mbody method_ast classname (Hashtbl.create 4 : (string, Type.t * AST.expression option) Hashtbl.t)
   in Env.iter iter_env method_table;

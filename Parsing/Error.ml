@@ -14,6 +14,7 @@ type t =
   | Environment_duplicate of string
   | Not_implemented of string
   | Unknown_attribute of string
+  | Unknown_variable of string
   | Unknown_method of string
   | Wrong_throw of astmethod
   | Unknown_class of string
@@ -53,6 +54,8 @@ let report_error = function
   | Unknown_method m -> print_endline ("Unknown method : "^m)
   | Unknown_attribute a ->
       print_endline ("Unknown attribute : "^a)
+  | Unknown_variable v ->
+      print_endline ("Unknown variable : "^v)
   | Wrong_throw m ->
       print_endline ("Wrong throw block in method : "^m.mname)
   | Unknown_class c ->
@@ -101,8 +104,12 @@ let not_implemented k l =
 let unknown_attribute id loc =
   raise (Error (Unknown_attribute id, loc))
 
+let unknown_variable id loc =
+  raise (Error (Unknown_variable id, loc))
+
 let unknown_method id loc =
   raise (Error (Unknown_method id, loc))
+
 let wrong_throw m =
   raise (Error (Wrong_throw m, m.mloc))
 

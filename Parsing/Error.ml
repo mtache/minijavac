@@ -18,6 +18,7 @@ type t =
   | Wrong_throw of astmethod
   | Unknown_class of string
   | Invalid_operand of expression * infix_op * expression
+  | Unknown_type of expression
 
 exception Error of t * Location.t;;
 
@@ -58,6 +59,8 @@ let report_error = function
       print_endline ("Unknown class : "^c)
   | Invalid_operand (e1,op,e2) ->
     print_endline("Invalid operands type :: e1 : "^(string_of_expression e1)^" operator "^(string_of_infix_op op)^" e2 : "^(string_of_expression e2))
+  | Unknown_type e ->
+    print_endline("Expression : "^(string_of_expression e)^" doesn't have a type. Internal error, sorry.")
 
 let illegal_char char loc =
   raise (Error(Illegal_character char, loc))
@@ -108,3 +111,6 @@ let unknown_class id loc =
 
 let invalid_operand e1 op e2 loc =
   raise (Error (Invalid_operand (e1,op,e2), loc))
+
+let unknown_type e =
+  raise (Error (Unknown_type e, e.eloc))

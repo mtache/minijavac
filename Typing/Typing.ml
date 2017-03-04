@@ -26,25 +26,25 @@ let infix_numeric_typing e1 op e2 = check_numeric_operand (e1::[e2]) op; match e
    | t when t = e2.etype -> t
    | t when t = Some(Primitive(Byte)) -> e2.etype
    | t when t = Some(Primitive(Double)) -> t
-   | t1 when t1 = Some(Primitive(Short))  -> match e2.etype with
+   | t1 when t1 = Some(Primitive(Short))  -> begin match e2.etype with
                                             | t2 when t2 = Some(Primitive(Float))  -> t2
                                             | t2 when t2 = Some(Primitive(Double)) -> t2
                                             | t2 when t2 = Some(Primitive(Long))   -> t2
                                             | t2 when t2 = Some(Primitive(Int))   -> t2
-                                            | _ -> t1
-   | t1 when t1 = Some(Primitive(Int)) -> match e2.etype with
+                                            | _ -> t1 end
+   | t1 when t1 = Some(Primitive(Int)) -> begin match e2.etype with
                                             | t2 when t2 = Some(Primitive(Float))  -> t2
                                             | t2 when t2 = Some(Primitive(Double)) -> t2
                                             | t2 when t2 = Some(Primitive(Long))   -> t2
-                                            | _ -> t1
-   | t1 when t1 = Some(Primitive(Long)) -> match e2.etype with
+                                            | _ -> t1 end
+   | t1 when t1 = Some(Primitive(Long)) -> begin match e2.etype with
                                             | t2 when t2 = Some(Primitive(Float))  -> t2
                                             | t2 when t2 = Some(Primitive(Double)) -> t2
-                                            | _ -> t1
-   | t1 when t1 = Some(Primitive(Float))  -> match e2.etype with
+                                            | _ -> t1 end
+   | t1 when t1 = Some(Primitive(Float))  -> begin match e2.etype with
                                             | t2 when t2 = Some(Primitive(Double)) -> t2
-                                            | _ -> t1
-
+                                            | _ -> t1 end
+                                                                                 
 let rec infix_typing e1 op e2 = match op with    (* TODO *)
   (* 15.17 Multiplicative Operators 491 *)  (* To be tested *)
   | Op_mul   -> infix_numeric_typing e1 op e2
@@ -133,7 +133,7 @@ let rec exp_typing exp classname method_table object_descriptor_table =
   | Call(Some(e),id,params) -> exp_typing e classname method_table object_descriptor_table;
                                 begin match e.etype with
                                   | Some(et) -> if Env.mem method_table ((Type.stringOf et)^"_"^id) then let meth = Env.find method_table ((Type.stringOf et)^"_"^id) in Some(meth.mreturntype) else Error.unknown_method id exp.eloc
-                                  | None -> None end
+                                  | None -> Error.unknown_type e end
   | Call(None,id,params)  -> if Env.mem method_table (classname^"_"^id) then let meth = Env.find method_table (classname^"_"^id) in Some(meth.mreturntype) else Error.unknown_method id exp.eloc
   | NewArray(t,l,Some(e)) -> None    (* TODO *)
   | NewArray(t,l,None)    -> None    (* TODO *)

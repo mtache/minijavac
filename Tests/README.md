@@ -14,12 +14,12 @@ Since the parser recognizes a value with a point as float and a value without a 
 we would need to implement different cases when the value is a short, double, byte or long.
 
 What is not implemented :
-⋅⋅* Prefix operators
-⋅⋅* Postfix operators
-⋅⋅* Assign operators besides classic assign operator ("var = some_value")
-⋅⋅* New operator syntax for inner classes
-⋅⋅* Cast operator
-⋅⋅* Arrays
+* Prefix operators
+* Postfix operators
+* Assign operators besides classic assign operator ("var = some_value")
+* New operator syntax for inner classes
+* Cast operator
+* Arrays
 
 # Execution
 

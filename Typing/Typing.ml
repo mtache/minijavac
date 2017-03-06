@@ -71,13 +71,15 @@ let rec infix_typing e1 op e2 = match op with    (* TODO *)
                   | Some(Ref(_)), Some(Ref(_)) -> Some(Primitive(Boolean))
                   | Some(Ref(_)), Some(Void) -> Some(Primitive(Boolean))
                   | Some(Void), Some(Ref(_)) -> Some(Primitive(Boolean))
-                  | _, _ -> infix_numeric_typing e1 op e2 end
+                  | Some(Primitive(Char)), Some(Primitive(Char)) -> Some(Primitive(Boolean))
+                  | _, _ -> check_numeric_operand (e1::[e2]) op; Some(Primitive(Boolean)) end
   | Op_ne    -> begin match e1.etype, e2.etype with
                   | Some(Primitive(Boolean)), Some(Primitive(Boolean)) -> Some(Primitive(Boolean))
                   | Some(Ref(_)), Some(Ref(_)) -> Some(Primitive(Boolean))
                   | Some(Ref(_)), Some(Void) -> Some(Primitive(Boolean))
                   | Some(Void), Some(Ref(_)) -> Some(Primitive(Boolean))
-                  | _, _ -> infix_numeric_typing e1 op e2 end
+                  | Some(Primitive(Char)), Some(Primitive(Char)) -> Some(Primitive(Boolean))
+                  | _, _ -> check_numeric_operand (e1::[e2]) op; Some(Primitive(Boolean)) end
   (* 15.22 Bitwise and Logical Operators 508 *)
   | Op_or    -> None    (* TODO *)
   | Op_xor   -> None    (* TODO *)

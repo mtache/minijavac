@@ -85,9 +85,9 @@ let rec infix_typing e1 op e2 = match op with    (* TODO *)
   | Op_xor   -> None    (* TODO *)
   | Op_and   -> None    (* TODO *)
   (* 15.23 Conditional-And Operator && 509 *)
-  | Op_cand  -> check_boolean_operand (e1::[e2]) op; None   (* TODO *)
+  | Op_cand  -> check_boolean_operand (e1::[e2]) op; Some(Primitive(Boolean)) 
   (* 15.24 Conditional-Or Operator || 509 *)
-  | Op_cor   -> check_boolean_operand (e1::[e2]) op; None    (* TODO *)
+  | Op_cor   -> check_boolean_operand (e1::[e2]) op; Some(Primitive(Boolean))  
 
 let rec assign_typing e1 op e2 = match op with    (* TODO *)
   | Assign  -> if (e1.etype = e2.etype) then e1.etype else Error.assign_incompatible_types (get_exp_type e1) e2

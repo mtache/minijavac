@@ -1,6 +1,8 @@
 open AST
 open Type
 
+let get_exp_type exp = match exp.etype with None -> Error.unknown_type exp | Some(t) -> t
+
 let rec check_integral_operand expl op = let check exp = match exp.etype with
   | Some(Primitive(Boolean)) -> Error.non_integral_operand exp op
   | Some(Primitive(Char)) -> Error.non_integral_operand exp op
@@ -86,7 +88,7 @@ let rec infix_typing e1 op e2 = match op with    (* TODO *)
   | Op_cor   -> check_boolean_operand (e1::[e2]) op; None    (* TODO *)
 
 let rec assign_typing e1 op e2 = match op with    (* TODO *)
-  | Assign  -> if (e1.etype = e2.etype) then e1.etype else Error.assign_incompatible_types e1 e2
+  | Assign  -> if (e1.etype = e2.etype) then e1.etype else Error.assign_incompatible_types (get_exp_type e1) e2
   | Ass_add -> None    (* TODO *)
   | Ass_sub -> None    (* TODO *)
   | Ass_mul -> None    (* TODO *)
@@ -117,8 +119,8 @@ let rec array_typing e l = None    (* TODO *)
 
 let rec val_typing v = match v with
   | String(value) -> None (* TODO special class, not an actual primitive *)
-  | Int(value) ->  print_endline ("int : "^value); Some(Primitive(Int))
-  | Float(value) -> print_endline ("float : "^value); Some(Primitive(Float))
+  | Int(value) -> Some(Primitive(Int))
+  | Float(value) -> Some(Primitive(Float))
   | Char(Some(value)) -> Some(Primitive(Char))
   | Char(None) -> Some(Primitive(Char))
   | Null -> None (* TODO special value, not an actual primitive *)
@@ -130,9 +132,7 @@ let rec exp_typing exp classname method_table object_descriptor_table var_env =
   (*
   | Call of expression option * string * expression list ## 15.12 doc
    *)
-  | Call(Some(e),id,params) -> iter e; begin match e.etype with
-                                  | Some(et) -> if Env.mem method_table ((Type.stringOf et)^"_"^id) then let meth = Env.find method_table ((Type.stringOf et)^"_"^id) in Some(meth.mreturntype) else Error.unknown_method id exp.eloc
-                                  | None -> Error.unknown_type e end
+  | Call(Some(e),id,params) -> iter e; let exp_type = get_exp_type e in if Env.mem method_table ((Type.stringOf exp_type)^"_"^id) then let meth = Env.find method_table ((Type.stringOf exp_type)^"_"^id) in Some(meth.mreturntype) else Error.unknown_method id exp.eloc
   | Call(None,id,params)  -> if Env.mem method_table (classname^"_"^id) then let meth = Env.find method_table (classname^"_"^id) in Some(meth.mreturntype) else Error.unknown_method id exp.eloc
   | NewArray(t,l,Some(e)) -> None    (* TODO *)
   | NewArray(t,l,None)    -> None    (* TODO *)
@@ -161,33 +161,38 @@ let rec exp_typing exp classname method_table object_descriptor_table var_env =
 
 let execute method_table object_descriptor_table =
   let rec statement_check statement method_ast classname var_env =
-   let exp_check exp = exp_typing exp classname method_table object_descriptor_table var_env
-   and iter other = statement_check other method_ast classname var_env
+   let exp_check exp env = exp_typing exp classname method_table object_descriptor_table env
+   and iter other env = statement_check other method_ast classname env
    in let rec list_check s_list env = match s_list with [] -> () | h::t -> statement_check h method_ast classname env; list_check t env
-   and add_var var_list = match var_list with [] -> () | (var_type, id, exp)::t -> Hashtbl.add var_env id (var_type,exp); add_var t
+   and add_var var_list env = match var_list with
+                                  | [] -> ()
+                                  | (var_type, id, None)::t -> Hashtbl.add env id (var_type,None); add_var t env
+                                  | (var_type, id, Some(exp))::t -> Hashtbl.add env id (var_type,Some(exp)); add_var t env; exp_check exp env; if (get_exp_type exp = var_type) then () else Error.assign_incompatible_types var_type exp
+   and add_var_for var_list env = match var_list with
+                                  | [] -> ()
+                                  | (Some(var_type), id, None)::t -> Hashtbl.add env id (var_type,None); add_var_for t env
+                                  | (Some(var_type), id, Some(exp))::t -> exp_check exp env; Hashtbl.add env id (var_type,Some(exp)); add_var_for t env
+                                  | (None, id, None)::t -> if Hashtbl.mem env id then () else Error.unknown_variable id method_ast.mloc
+                                  | (None, id, Some(exp))::t -> if Hashtbl.mem env id then begin let var_type, _ = Hashtbl.find   env id in exp_check exp env; Hashtbl.remove env id; Hashtbl.add env id (var_type,Some(exp)) end else Error.unknown_variable id method_ast.mloc
+   and exp_list_check exp_list env = match exp_list with [] -> () | h::t -> exp_check h env; exp_list_check t env
    in match statement with
     (* All good *)
     | Nop                  -> ()
-    (* END - All good *)
-
-    (* To be tested *)
-    | Expr(exp)            -> exp_check exp
-    | Return(Some(exp))    -> exp_check exp; begin match exp.etype with Some(t) when t = method_ast.mreturntype -> () | _ -> (Error.wrong_return method_ast) end
-    | Return(None)         -> begin match method_ast.mreturntype with Void -> () | _ -> (Error.wrong_return method_ast) end 
+    | Expr(exp)            -> exp_check exp var_env
     | Block(sl)            -> list_check sl (Hashtbl.copy var_env) (* New block = new scope for variables ! *)
-    (*  | VarDecl of (Type.t * string * expression option) list *) 
-    | VarDecl(l)           -> add_var l
-    (* To be tested - Only check if ref_type is inside the throw block, not that it is actually an exception *)
-    | Throw(exp)           -> exp_check exp; begin match exp.etype with Some(Ref(_)) -> () | _ -> (Error.wrong_throw method_ast) end
-    (* END - To be tested *)
+    | VarDecl(var)         -> add_var var var_env
+    | Return(Some(exp))    -> exp_check exp var_env; begin match exp.etype with Some(t) when t = method_ast.mreturntype -> () | _ -> (Error.wrong_return method_ast) end
+    | Return(None)         -> begin match method_ast.mreturntype with Void -> () | _ -> (Error.wrong_return method_ast) end 
+    (* Throw - Only check if ref_type is inside the throw block, not that it is actually an exception *)
+    | Throw(exp)           -> exp_check exp var_env; begin match exp.etype with Some(Ref(_)) -> () | _ -> (Error.wrong_throw method_ast) end
+    | While(cond,s)        -> exp_check cond var_env; iter s var_env
+    | If(cond,s1,Some(s2)) -> exp_check cond var_env; iter s1 var_env; iter s2 var_env
+    | If(cond,s,None)      -> exp_check cond var_env; iter s var_env
+    | For(var,Some(cond),exp_list,s) -> let for_env = (Hashtbl.copy var_env) in add_var_for var for_env; exp_check cond for_env; exp_list_check exp_list for_env; iter s for_env
+    | For(var,None,exp_list,s)       -> let for_env = (Hashtbl.copy var_env) in add_var_for var for_env; exp_list_check exp_list for_env; iter s for_env
+    (* END - All good *)
     
     (* TODO *)
-    | While(cond,s)        -> iter s
-    | If(cond,s1,Some(s2)) -> iter s1; iter s2
-    | If(cond,s,None)      -> iter s
-    (*    | For of (Type.t option * string * expression option) list * expression option * expression list * statement *)
-    | For(_,Some(exp),_,s) -> exp_check exp; iter s
-    | For(_,None,_,s)      -> iter s
     (*   | Try of statement list * (argument * statement list) list * statement list *)
     | Try(sl1,l,sl2)       -> list_check sl1 (Hashtbl.copy var_env); list_check sl2 (Hashtbl.copy var_env)
     (* END - TODO *)

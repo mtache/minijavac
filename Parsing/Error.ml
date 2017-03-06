@@ -20,6 +20,7 @@ type t =
   | Unknown_class of string
   | Invalid_operand of expression * infix_op * expression
   | Unknown_type of expression
+  | Assign_incompatible_types of expression * expression
 
 exception Error of t * Location.t;;
 
@@ -64,6 +65,9 @@ let report_error = function
     print_endline("Invalid operands type :: e1 : "^(string_of_expression e1)^" operator "^(string_of_infix_op op)^" e2 : "^(string_of_expression e2))
   | Unknown_type e ->
     print_endline("Expression : "^(string_of_expression e)^" doesn't have a type. Internal error, sorry.")
+  | Assign_incompatible_types (e1,e2) ->
+    print_endline("Incompatible assignment : "^(string_of_expression e2)^" to "^(string_of_expression e1))
+
 
 let illegal_char char loc =
   raise (Error(Illegal_character char, loc))
@@ -121,3 +125,6 @@ let invalid_operand e1 op e2 loc =
 
 let unknown_type e =
   raise (Error (Unknown_type e, e.eloc))
+
+let assign_incompatible_types e1 e2 =
+  raise (Error (Assign_incompatible_types (e1, e2), e1.eloc))

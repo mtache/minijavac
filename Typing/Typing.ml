@@ -86,7 +86,7 @@ let rec infix_typing e1 op e2 = match op with    (* TODO *)
   | Op_cor   -> check_boolean_operand (e1::[e2]) op; None    (* TODO *)
 
 let rec assign_typing e1 op e2 = match op with    (* TODO *)
-  | Assign  -> None    (* TODO *)
+  | Assign  -> if (e1.etype = e2.etype) then e1.etype else Error.assign_incompatible_types e1 e2
   | Ass_add -> None    (* TODO *)
   | Ass_sub -> None    (* TODO *)
   | Ass_mul -> None    (* TODO *)
@@ -146,10 +146,10 @@ let rec exp_typing exp classname method_table object_descriptor_table var_env =
   | Val(v)                -> val_typing v
   | If(c,e1,e2)           -> iter e1; iter e2; if_typing c e1 e2
   | CondOp(c,e1,e2)       -> iter e1; iter e2; if_typing c e1 e2 (* TODO check if it is the same case than if *)
-  | Op(e1,op,e2)          -> iter e1; iter e2; infix_typing e1 op e2
-  | AssignExp(e1,op,e2)   -> iter e1; iter e2; assign_typing e1 op e2
-  | Post(e,op)            -> iter e; postfix_typing e op
-  | Pre(op,e)             -> iter e; prefix_typing op e
+  | Op(e1,op,e2)          -> iter e1; iter e2; infix_typing e1 op e2 
+  | AssignExp(e1,op,e2)   -> iter e1; iter e2; assign_typing e1 op e2 (* TODO *)
+  | Post(e,op)            -> iter e; postfix_typing e op (* TODO *)
+  | Pre(op,e)             -> iter e; prefix_typing op e (* TODO *)
   | Cast(t,e)             -> iter e; begin match e.etype with (* Incomplete *)
                                 | Some(t) -> Some(t)
                                 | _ -> Error.malformed_expression e end

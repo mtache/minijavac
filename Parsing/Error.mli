@@ -25,3 +25,4 @@ val wrong_throw : AST.astmethod -> 'a
 val unknown_class : string -> Location.t -> 'a
 val invalid_operand : AST.expression -> AST.infix_op -> AST.expression -> Location.t -> 'a
 val unknown_type : AST.expression -> 'a
+val assign_incompatible_types : AST.expression -> AST.expression -> 'a

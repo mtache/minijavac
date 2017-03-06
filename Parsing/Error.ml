@@ -18,9 +18,10 @@ type t =
   | Unknown_method of string
   | Wrong_throw of astmethod
   | Unknown_class of string
-  | Invalid_operand of expression * infix_op * expression
   | Unknown_type of expression
   | Assign_incompatible_types of Type.t * expression
+  | Type_mismatch of expression * expression
+  | Exp_type_mismatch of expression * Type.t
 
 exception Error of t * Location.t;;
 
@@ -52,7 +53,8 @@ let report_error = function
       print_endline (key^" is defined more than once")
   | Not_implemented s ->
       print_endline ("This has not been implemented : "^s)
-  | Unknown_method m -> print_endline ("Unknown method : "^m)
+  | Unknown_method m ->
+      print_endline ("Unknown method : "^m)
   | Unknown_attribute a ->
       print_endline ("Unknown attribute : "^a)
   | Unknown_variable v ->
@@ -61,12 +63,14 @@ let report_error = function
       print_endline ("Wrong throw block in method : "^m.mname)
   | Unknown_class c ->
       print_endline ("Unknown class : "^c)
-  | Invalid_operand (e1,op,e2) ->
-    print_endline("Invalid operands type :: e1 : "^(string_of_expression e1)^" operator "^(string_of_infix_op op)^" e2 : "^(string_of_expression e2))
   | Unknown_type e ->
     print_endline("Expression : "^(string_of_expression e)^" doesn't have a type. Internal error, sorry.")
   | Assign_incompatible_types (exp_type,exp) ->
     print_endline("Incompatible assignment : "^(Type.stringOf exp_type)^" to "^(string_of_expression exp))
+  | Type_mismatch (e1,e2) ->
+    print_endline("The expression "^(string_of_expression e1)^" should be the same type that expression "^(string_of_expression e2))
+  | Exp_type_mismatch (exp,exp_type) ->
+    print_endline("The expression "^(string_of_expression exp)^" should be of type "^(Type.stringOf exp_type))
 
 
 let illegal_char char loc =
@@ -120,11 +124,14 @@ let wrong_throw m =
 let unknown_class id loc = 
   raise (Error (Unknown_class id, loc))
 
-let invalid_operand e1 op e2 loc =
-  raise (Error (Invalid_operand (e1,op,e2), loc))
-
 let unknown_type e =
   raise (Error (Unknown_type e, e.eloc))
 
 let assign_incompatible_types exp_type exp =
   raise (Error (Assign_incompatible_types (exp_type, exp), exp.eloc))
+
+let type_mismatch e1 e2 =
+  raise (Error (Type_mismatch (e1, e2), e1.eloc))
+
+let exp_type_mismatch exp exp_type =
+  raise (Error (Exp_type_mismatch (exp, exp_type), exp.eloc))

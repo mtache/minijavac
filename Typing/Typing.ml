@@ -2,6 +2,7 @@ open AST
 open Type
 
 let get_exp_type exp = match exp.etype with None -> Error.unknown_type exp | Some(t) -> t
+let check_boolean_exp exp = if (exp.etype = Some(Primitive(Boolean))) then () else Error.exp_type_mismatch exp (Primitive(Boolean))
 
 let rec check_integral_operand expl op = let check exp = match exp.etype with
   | Some(Primitive(Boolean)) -> Error.non_integral_operand exp op
@@ -54,7 +55,6 @@ let rec infix_typing e1 op e2 = match op with    (* TODO *)
   | Op_mod   -> infix_numeric_typing e1 op e2
   (* 15.18 Additive Operators 496 *)  (* To be tested *)
   | Op_add   -> infix_numeric_typing e1 op e2 (* TODO - Handle when operands are strings *)
-  (* if ((check_numeric_operand (e1::[e2]) op) && (e1.etype = e2.etype)) then e1.etype else Error.invalid_operand e1 op e2 e1.eloc *)
   | Op_sub   -> infix_numeric_typing e1 op e2
   (* 15.19 Shift Operators 502 *) (* To be tested *)
   | Op_shl   -> check_integral_operand (e1::[e2]) op; e1.etype;
@@ -85,9 +85,9 @@ let rec infix_typing e1 op e2 = match op with    (* TODO *)
   | Op_xor   -> None    (* TODO *)
   | Op_and   -> None    (* TODO *)
   (* 15.23 Conditional-And Operator && 509 *)
-  | Op_cand  -> check_boolean_operand (e1::[e2]) op; Some(Primitive(Boolean)) 
+  | Op_cor   -> check_boolean_operand (e1::[e2]) op; Some(Primitive(Boolean))
   (* 15.24 Conditional-Or Operator || 509 *)
-  | Op_cor   -> check_boolean_operand (e1::[e2]) op; Some(Primitive(Boolean))  
+  | Op_cand  -> check_boolean_operand (e1::[e2]) op; Some(Primitive(Boolean))
 
 let rec assign_typing e1 op e2 = match op with    (* TODO *)
   | Assign  -> if (e1.etype = e2.etype) then e1.etype else Error.assign_incompatible_types (get_exp_type e1) e2
@@ -115,10 +115,6 @@ let rec postfix_typing e op = match op with     (* TODO *)
   | Incr    -> None    (* TODO *)
   | Decr    -> None    (* TODO *)
 
-let rec if_typing c e1 e2 = None   (* TODO *)
-
-let rec array_typing e l = None    (* TODO *)
-
 let rec val_typing v = match v with
   | String(value) -> None (* TODO special class, not an actual primitive *)
   | Int(value) -> Some(Primitive(Int))
@@ -131,34 +127,36 @@ let rec val_typing v = match v with
 let rec exp_typing exp classname method_table object_descriptor_table var_env =
   let rec iter exp = exp_typing exp classname method_table object_descriptor_table var_env in
   let t=match exp.edesc with
-  (*
-  | Call of expression option * string * expression list ## 15.12 doc
-   *)
+  (* All good *)
   | Call(Some(e),id,params) -> iter e; let exp_type = get_exp_type e in if Env.mem method_table ((Type.stringOf exp_type)^"_"^id) then let meth = Env.find method_table ((Type.stringOf exp_type)^"_"^id) in Some(meth.mreturntype) else Error.unknown_method id exp.eloc
   | Call(None,id,params)  -> if Env.mem method_table (classname^"_"^id) then let meth = Env.find method_table (classname^"_"^id) in Some(meth.mreturntype) else Error.unknown_method id exp.eloc
-  | NewArray(t,l,Some(e)) -> None    (* TODO *)
-  | NewArray(t,l,None)    -> None    (* TODO *)
-  | ArrayInit(l)          -> None    (* TODO *)
   | Name(id)              -> if Hashtbl.mem var_env id then let var_type, exp = Hashtbl.find var_env id in Some(var_type) else Error.unknown_variable id exp.eloc
   | Attr(o,id)            -> let attr_env = (Env.find object_descriptor_table classname) in
                               if Env.mem attr_env id then let attr = Env.find attr_env id in Some(attr.atype) else Error.unknown_attribute id exp.eloc
-  | Array(e,el)           -> None    (* TODO *)
   | New(None,p,_)         -> if Env.mem object_descriptor_table (String.concat "." p) then Some(Ref(Type.extract_type p)) else Error.unknown_class (String.concat "." p) exp.eloc
-  | New(Some o,p,_)       -> None    (* Not implemented syntax for inner classes ... *)
   | Val(v)                -> val_typing v
-  | If(c,e1,e2)           -> iter e1; iter e2; if_typing c e1 e2
-  | CondOp(c,e1,e2)       -> iter e1; iter e2; if_typing c e1 e2 (* TODO check if it is the same case than if *)
-  | Op(e1,op,e2)          -> iter e1; iter e2; infix_typing e1 op e2 
-  | AssignExp(e1,op,e2)   -> iter e1; iter e2; assign_typing e1 op e2 (* TODO *)
-  | Post(e,op)            -> iter e; postfix_typing e op (* TODO *)
-  | Pre(op,e)             -> iter e; prefix_typing op e (* TODO *)
-  | Cast(t,e)             -> iter e; begin match e.etype with (* Incomplete *)
-                                | Some(t) -> Some(t)
-                                | _ -> Error.malformed_expression e end
+  | CondOp(c,e1,e2)       -> iter e1; iter e2; iter c; if (e1.etype = e2.etype) then begin check_boolean_exp c; e1.etype end else Error.type_mismatch e1 e2
+  | Op(e1,op,e2)          -> iter e1; iter e2; infix_typing e1 op e2
+  | AssignExp(e1,op,e2)   -> iter e1; iter e2; assign_typing e1 op e2
+  | Post(e,op)            -> iter e; postfix_typing e op
+  | Pre(op,e)             -> iter e; prefix_typing op e
   | Type(tp)              -> Some(tp)
   | ClassOf(tp)           -> Some(tp)
   | Instanceof(e,t)       -> iter e; Some(Primitive(Boolean))
   | VoidClass             -> Some(Void)
+  (* END - All good *)
+
+  (* TODO *)
+  | New(Some o,p,_)       -> None    (* Not implemented syntax for inner classes ... *)
+  | If(c,e1,e2)           -> None (* What is this ? *)
+  | Cast(t,e)             -> iter e; begin match e.etype with (* Incomplete *)
+                                | Some(t) -> Some(t)
+                                | _ -> Error.malformed_expression e end
+  | NewArray(t,l,Some(e)) -> None
+  | NewArray(t,l,None)    -> None
+  | ArrayInit(l)          -> None
+  | Array(e,el)           -> None
+  (* END - TODO *)
   in exp.etype <- t
 
 let execute method_table object_descriptor_table =
@@ -169,7 +167,12 @@ let execute method_table object_descriptor_table =
    and add_var var_list env = match var_list with
                                   | [] -> ()
                                   | (var_type, id, None)::t -> Hashtbl.add env id (var_type,None); add_var t env
-                                  | (var_type, id, Some(exp))::t -> Hashtbl.add env id (var_type,Some(exp)); add_var t env; exp_check exp env; if (get_exp_type exp = var_type) then () else Error.assign_incompatible_types var_type exp
+                                  | (var_type, id, Some(exp))::t -> begin 
+                                                                    Hashtbl.add env id (var_type,Some(exp));
+                                                                    exp_check exp env;
+                                                                    if (get_exp_type exp = var_type) then () else Error.assign_incompatible_types var_type exp
+                                                                    add_var t env;
+                                                                    end
    and add_var_for var_list env = match var_list with
                                   | [] -> ()
                                   | (Some(var_type), id, None)::t -> Hashtbl.add env id (var_type,None); add_var_for t env
@@ -188,8 +191,8 @@ let execute method_table object_descriptor_table =
     (* Throw - Only check if ref_type is inside the throw block, not that it is actually an exception *)
     | Throw(exp)           -> exp_check exp var_env; begin match exp.etype with Some(Ref(_)) -> () | _ -> (Error.wrong_throw method_ast) end
     | While(cond,s)        -> exp_check cond var_env; iter s var_env
-    | If(cond,s1,Some(s2)) -> exp_check cond var_env; iter s1 var_env; iter s2 var_env
-    | If(cond,s,None)      -> exp_check cond var_env; iter s var_env
+    | If(cond,s1,Some(s2)) -> exp_check cond var_env; iter s1 var_env; iter s2 var_env; check_boolean_exp cond;
+    | If(cond,s,None)      -> exp_check cond var_env; iter s var_env; check_boolean_exp cond;
     | For(var,Some(cond),exp_list,s) -> let for_env = (Hashtbl.copy var_env) in add_var_for var for_env; exp_check cond for_env; exp_list_check exp_list for_env; iter s for_env
     | For(var,None,exp_list,s)       -> let for_env = (Hashtbl.copy var_env) in add_var_for var for_env; exp_list_check exp_list for_env; iter s for_env
     (* END - All good *)

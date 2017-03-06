@@ -3,13 +3,12 @@ public class A {
     public void m1() { }
 
     public void m2() {
-        int a = 1.0;
+        int a = 1;
         true && false;
         return;
         Ext ext = new Ext();
         ext.mext();
         { Ext ext2 = new Ext(); }
-        //ext2; //Unknown variable
         boolean c = true || false;
         if (c) {
             ext.mext();
@@ -21,7 +20,6 @@ public class A {
             result = 4;
         }
         for (int i = 0; i<10; i++) {i=5;}
-        //i; //Unknown variable
     }
 }
 

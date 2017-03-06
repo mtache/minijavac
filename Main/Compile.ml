@@ -6,14 +6,16 @@ let build_method_table c_ast c_name =
             | [] -> Env.initial()
             | m::others -> let env = (iter c_name others) and key = c_name^"_"^m.mname
                            in if Env.mem env key then Error.environment_duplicate key
-                           else Env.define env key m (* TO BE TESTED *)
+                           else Env.define env key m
     in iter c_name c_ast.cmethods
 
 let build_object_descriptor c_ast c_name =
     let rec iter attributes =
         match attributes with
             | [] -> Env.initial()
-            | a::others -> (Env.define (iter others) a.aname a)
+            | a::others -> let env = (iter others) and key = a.aname
+                           in if Env.mem env key then Error.environment_duplicate key
+                           else (Env.define (iter others) key a)
     in c_name, iter c_ast.cattributes
 
 let rec concat_method_tables = function
@@ -22,7 +24,9 @@ let rec concat_method_tables = function
 
 let rec build_object_descriptor_table = function
     | [] -> Env.initial()
-    | (c_name, object_descriptor)::others -> Env.define (build_object_descriptor_table others) c_name object_descriptor
+    | (c_name, object_descriptor)::others -> let env = (build_object_descriptor_table others) and key = c_name
+                           in if Env.mem env key then Error.environment_duplicate key
+                           else Env.define env key object_descriptor
 
 let parser ast f =
   let type_parse t = match t.info with
@@ -46,7 +50,7 @@ let execute lexbuf verbose =
     print_endline "successfull parsing";
     if verbose then AST.print_program ast;
     Typing.execute method_table object_descriptor_table;
-    print_endline "successfull typing check (unimplemented)"
+    print_endline "successfull typing check"
     (* END - MAIN ALGORITHM *)
   with 
     | Parser.Error ->

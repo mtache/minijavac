@@ -23,6 +23,7 @@ val unknown_method : string -> Location.t -> 'a
 val unknown_variable : string -> Location.t -> 'a
 val wrong_throw : AST.astmethod -> 'a
 val unknown_class : string -> Location.t -> 'a
-val invalid_operand : AST.expression -> AST.infix_op -> AST.expression -> Location.t -> 'a
 val unknown_type : AST.expression -> 'a
 val assign_incompatible_types : Type.t -> AST.expression -> 'a
+val type_mismatch : AST.expression -> AST.expression -> 'a
+val exp_type_mismatch : AST.expression -> Type.t -> 'a

@@ -132,28 +132,43 @@ let execute method_table object_descriptor_table =
   let rec iter exp = exp_typing exp classname var_env in
   let t=match exp.edesc with
     (* All good *)
-    | Call(Some(e),id,params) -> iter e; let exp_type = get_exp_type e in if Env.mem method_table ((Type.stringOf exp_type)^"_"^id) then let meth = Env.find method_table ((Type.stringOf exp_type)^"_"^id) in Some(meth.mreturntype) else Error.unknown_method id exp.eloc
-    | Call(None,id,params)  -> if Env.mem method_table (classname^"_"^id) then let meth = Env.find method_table (classname^"_"^id) in Some(meth.mreturntype) else Error.unknown_method id exp.eloc
-    | Name(id)              -> if Hashtbl.mem var_env id then let var_type, exp = Hashtbl.find var_env id in Some(var_type) else Error.unknown_variable id exp.eloc
-    | Attr(o,id)            -> let attr_env = (Env.find object_descriptor_table classname) in
-                              if Env.mem attr_env id then let attr = Env.find attr_env id in Some(attr.atype) else Error.unknown_attribute id exp.eloc
-    | New(None,p,_)         -> if Env.mem object_descriptor_table (String.concat "." p) then Some(Ref(Type.extract_type p)) else Error.unknown_class (String.concat "." p) exp.eloc
-    | Val(v)                -> val_typing v
-    | CondOp(c,e1,e2)       -> iter e1; iter e2; iter c; if (e1.etype = e2.etype) then begin check_boolean_exp c; e1.etype end else Error.type_mismatch e1 e2
-    | Op(e1,op,e2)          -> iter e1; iter e2; infix_typing e1 op e2
-    | AssignExp(e1,op,e2)   -> iter e1; iter e2; assign_typing e1 op e2
-    | Post(e,op)            -> iter e; postfix_typing e op
-    | Pre(op,e)             -> iter e; prefix_typing op e
-    | Type(tp)              -> Some(tp)
-    | ClassOf(tp)           -> Some(tp)
-    | Instanceof(e,t)       -> iter e; Some(Primitive(Boolean))
-    | VoidClass             -> Some(Void)
+    | Call(Some(e),id,params) -> iter e; let exp_type = get_exp_type e in
+                                 begin match id with
+                                  | method_name when Env.mem method_table ((Type.stringOf exp_type)^"_"^id) = true -> let meth = Env.find method_table ((Type.stringOf exp_type)^"_"^id) in Some(meth.mreturntype)
+                                  | _ -> Error.unknown_method id exp.eloc end
+    | Call(None,id,params)    -> begin match id with
+                                  | method_name when Env.mem method_table (classname^"_"^id) = true -> let meth = Env.find method_table (classname^"_"^id) in Some(meth.mreturntype)
+                                  | _ -> Error.unknown_method id exp.eloc end
+    | Name(id)                -> let attr_env = (Env.find object_descriptor_table classname) in
+                                 begin match id with
+                                  | this when id = "this" -> Some(Ref(Type.mk_type [] classname))
+                                  | var when Hashtbl.mem var_env id = true -> let var_type, exp = Hashtbl.find var_env id in Some(var_type)
+                                  | attr when Env.mem attr_env id = true -> let attr = Env.find attr_env id in Some(attr.atype)
+                                  | _ -> Error.unknown_variable id exp.eloc end
+    | Attr(e,id)              -> iter e; let exp_type = get_exp_type e in
+                                 let attr_env = (Env.find object_descriptor_table (Type.stringOf exp_type)) in 
+                                 begin match id with
+                                  | attr when Env.mem attr_env id = true -> let attr = Env.find attr_env id in Some(attr.atype)
+                                  | _ -> Error.unknown_attribute id exp.eloc end
+    | New(None,p,_)           -> begin match p with
+                                  | class_ref when Env.mem object_descriptor_table (String.concat "." p) = true -> Some(Ref(Type.extract_type p))
+                                  | _ -> Error.unknown_class (String.concat "." p) exp.eloc end
+    | Val(v)                  -> val_typing v
+    | CondOp(c,e1,e2)         -> iter e1; iter e2; iter c; check_boolean_exp c; begin match e1.etype with exp_type when exp_type = e2.etype -> exp_type | _ -> Error.type_mismatch e1 e2 end
+    | Op(e1,op,e2)            -> iter e1; iter e2; infix_typing e1 op e2
+    | AssignExp(e1,op,e2)     -> iter e1; iter e2; assign_typing e1 op e2
+    | Post(e,op)              -> iter e; postfix_typing e op
+    | Pre(op,e)               -> iter e; prefix_typing op e
+    | Type(tp)                -> Some(tp)
+    | ClassOf(tp)             -> Some(tp)
+    | Instanceof(e,t)         -> iter e; Some(Primitive(Boolean))
+    | VoidClass               -> Some(Void)
     (* END - All good *)
 
     (* TODO *)
     | New(Some o,p,_)       -> None    (* Not implemented syntax for inner classes ... *)
     | If(c,e1,e2)           -> None (* What is this ? *)
-    | Cast(t,e)             -> iter e; begin match e.etype with (* Incomplete *)
+    | Cast(t,e)             -> iter e; begin match e.etype with (* Incomplete - Only cast the type are the same *)
                                   | Some(t) -> Some(t)
                                   | _ -> Error.malformed_expression e end
     | NewArray(t,l,Some(e)) -> None
@@ -203,7 +218,6 @@ let execute method_table object_descriptor_table =
     (* END - All good *)
 
     (* TODO *)
-    (*   | Try of statement list * (argument * statement list) list * statement list *)
     | Try(sl1,l,sl2)       -> list_check sl1 (Hashtbl.copy var_env); list_check sl2 (Hashtbl.copy var_env)
     (* END - TODO *)
     

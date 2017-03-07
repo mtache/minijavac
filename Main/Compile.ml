@@ -46,9 +46,9 @@ let execute lexbuf verbose =
   try 
    (* MAIN ALGORITHM *)
     let ast = Parser.compilationUnit Lexer.token lexbuf in
-    let (method_table, object_descriptor_table) = init ast in
     print_endline "successfull parsing";
     if verbose then AST.print_program ast;
+    let (method_table, object_descriptor_table) = init ast in
     Typing.execute method_table object_descriptor_table;
     print_endline "successfull typing check"
     (* END - MAIN ALGORITHM *)

@@ -23,5 +23,8 @@ val merge : ('a,'b) t -> ('a,'b) t -> ('a,'b) t
 (* print function for the class environment *)
 val print_class_env : (string, (string, Type.t) t) t -> unit
 
+(* print function for the class environment BIS*)
+val print_class_env_bis : (string, (string, AST.astattribute) t) t -> unit
+
 (* print function for the method table *)
 val print_method_table : (string, AST.astmethod) t -> unit

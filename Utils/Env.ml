@@ -35,3 +35,14 @@ let print_method_table env =
   iter (fun (key,value) -> 
   print_endline ("Key in table : "^key);
   print_endline ("Name in AST : "^value.AST.mname)) env
+
+(* test : nouvelle fonction pour print object_detector_table (celle d'au dessus ne marche pas) *)
+  
+let print_class_env_bis env =
+  let print_methods_env env =
+    print_endline "  Methods :";
+    iter (fun (key,value) ->
+    print_endline ("    "^key^" of type "^(value.AST.aname))) env
+  in iter (fun (key,value) -> 
+  print_endline ("Class : "^key);
+  print_methods_env value) env

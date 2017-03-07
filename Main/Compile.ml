@@ -50,7 +50,12 @@ let execute lexbuf verbose =
     if verbose then AST.print_program ast;
     let (method_table, object_descriptor_table) = init ast in
     Typing.execute method_table object_descriptor_table;
-    print_endline "successfull typing check"
+    print_endline "successfull typing check";
+    (* Starting execution *)
+    print_endline "\n EXECUTION : "; 
+    Execution.find_main method_table;
+    print_endline "\n END EXECUTION : ";
+    (* End execution *)
     (* END - MAIN ALGORITHM *)
   with 
     | Parser.Error ->

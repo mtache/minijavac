@@ -17,32 +17,36 @@ let print_all_variable_of_given_type given_type mem =
 	let found_env = Env.find mem given_type in
 	print_all_type_of_mem found_env
 
-let print_memory_bis env =
-  let print_var_env env =
+let print_memory env =
+  let print_var env =
     print_endline " Variable :";
     Env.iter (fun (key,value) ->
     print_endline ("    "^key^" of value "^(string_of_int value))) env
   in Env.iter (fun (key,value) -> 
   print_endline ("Type : "^key);
-  print_var_env value) env
+  print_var value) env
 
 (* Some functions to add elements on the memory AND return memory *)
 
 let add_new_type_to_mem t mem =
 	let new_env = Env.initial() in
-	Env.define mem t new_env
+	(print_endline "creation new type";
+	Env.define mem t new_env )
 
 let get_sub_env_by_type type_given mem =
 	Env.find mem type_given
 
 
 let add_new_variable_to_mem variable_type value name mem =
-	if (Env.mem mem variable_type)
-		then
-			(Env.define mem variable_type (Env.define (get_sub_env_by_type variable_type mem) name value))
-		else 
-			let new_mem = add_new_type_to_mem variable_type mem in
-			Env.define new_mem variable_type (Env.define (get_sub_env_by_type variable_type new_mem) name value)
+	if (Env.mem mem variable_type) then
+		(print_endline "test1";
+		print_memory mem;
+		(Env.replace mem variable_type (Env.define (get_sub_env_by_type variable_type mem) name value));)
+	else 
+		let new_mem = add_new_type_to_mem variable_type mem in
+		(print_endline "test2";
+		print_memory new_mem;
+		Env.replace new_mem variable_type (Env.define (get_sub_env_by_type variable_type new_mem) name value);)
 
 
 let modify_variable_mem variable_type new_value name mem =
@@ -81,7 +85,10 @@ let rec execute_vardecl vd_list mem = match vd_list with
 	| [] -> print_endline "vardecl finished or empty"; mem
 	| h::q -> 
 		let new_mem = execute_vardecl_aux h mem in
-				execute_vardecl q new_mem 
+				(
+				print_endline "AFTER the first statement";
+				print_memory new_mem;
+				execute_vardecl q new_mem )
 
 
 (* the MAIN algorithm : *)
@@ -114,7 +121,7 @@ let start_point astmethod_main =
 let find_main env =
   	Env.iter (fun (key,value) ->  match (split_main key) with 
 								|  "main" -> let res =start_point value in
-									print_memory_bis res;
+									print_memory res;
 									()
 								| _ -> () 
 	) env 

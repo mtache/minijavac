@@ -27,7 +27,7 @@ Passing Test : `ocamlbuild -use-ocamlfind Main.byte -- Tests/TestsUnitairesTypin
 
 Error Handling Tests : `ocamlbuild -use-ocamlfind Main.byte -- Tests/Error\ Handling\ Tests/*`
 
-## Compilation algorithm
+# Compilation algorithm
 
 We have changed the compilation algorithm, to make it simpler. It follows these steps :
 

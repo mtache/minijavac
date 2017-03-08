@@ -11,6 +11,11 @@ let define env n t =
     Hashtbl.add result n t; 
     result
 
+let replace env n t = 
+  let result = Hashtbl.copy env in
+    Hashtbl.replace result n t; 
+    result
+
 let iter f = Hashtbl.iter (fun s i -> f (s,i))
 
 (* http://pleac.sourceforge.net/pleac_ocaml/hashes.html *)

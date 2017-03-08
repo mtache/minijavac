@@ -29,10 +29,6 @@ The Lexer/Parser is incomplete but should be ok for phase2. It contains two conf
 both could be solved at the price of a much more complex
 grammar... Here the behavior of choosing shift should be ok.
 
-## Compilation algorithm
+## Typing
 
-We have changed the compilation algorithm, to make it simpler. It follows these steps :
-
-1. Build the methods table
-2. Build the objects descriptors table
-3. Check the statements and expressions, and type expressions
+Please see Typing/README.md

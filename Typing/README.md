@@ -21,8 +21,22 @@ What is not implemented :
 * Cast operator
 * Arrays
 
-# Execution
+# Running typing phase
 
 Passing Test : `ocamlbuild -use-ocamlfind Main.byte -- Tests/TestsUnitairesTyping.java`
 
 Error Handling Tests : `ocamlbuild -use-ocamlfind Main.byte -- Tests/Error\ Handling\ Tests/*`
+
+## Compilation algorithm
+
+We have changed the compilation algorithm, to make it simpler. It follows these steps :
+
+1. Build the methods table
+2. Build the objects descriptors table
+3. Check the statements and expressions, and type expressions
+
+# Additional documentation
+
+The file Typing.ml contains some additional documentation, you can easily see what has been implemented and what's been left. We tried to focus on interesting cases (scope, method
+existence, attribute existence, etc ...) instead of duplicating similar cases (postfix / prefix, etc ...).
+

@@ -74,6 +74,13 @@ let get_string_type_from_typet obscur_type =
 										string_of_float (val1 /. val2)
 
 		(* Function to execute a simple operation *)
+let boolean_operation_exec e1 op e2 =
+		let val1 = bool_of_string e1 in
+		let val2 = bool_of_string e2 in
+			match op with
+			| Op_cand -> string_of_bool ( val1 && val2)
+			| Op_cor -> string_of_bool ( val1 || val2)
+
 let int_operation_exec e1 op e2 =
 		let val1 = int_of_string e1 in
 		let val2 = int_of_string e2 in
@@ -115,6 +122,7 @@ let int_operation_exec e1 op e2 =
 														| Primitive prim -> match prim with
 																	| Int ->  int_operation_exec e1 inf_op e2
 																	| Float -> float_operation_exec e1 inf_op e2
+																	| Boolean -> boolean_operation_exec e1 inf_op e2
 																	| _ -> "Unimplemented"
 														| _ -> "Uninplemented"
 (* The functions to execute a variable declaration *)
@@ -129,6 +137,7 @@ let rec get_value_of_exp exp=
 		| Val x -> match x with
 			| Int n -> n
 			| Float f -> f
+			| Boolean b -> string_of_bool b
 			| _ -> print_endline "not implemented"; "0"
 		| _ -> print_endline "not implemented"; "0"
 

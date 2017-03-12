@@ -5,7 +5,11 @@ public class A {
         int d = 4;
         float f = 1.5 /0.75;
         float z = 3 * (4 / 1.25);
-        String s = "something in here";
+        boolean a = true && false;
+        boolean b = true && true;
+        boolean c = true || false;
+
+        // String s = "something in here";
     }
 
     public void m2() {

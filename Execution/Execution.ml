@@ -60,6 +60,18 @@ let get_string_type_from_typet obscur_type =
 	Type.stringOf obscur_type
 
 
+	let float_operation_exec e1 op e2 =
+			let val1 = float_of_string e1 in
+			let val2 = float_of_string e2 in
+			match op with
+				| Op_add ->
+										string_of_float (val1 +. val2)
+				| Op_sub ->
+										string_of_float (val1 -. val2)
+				| Op_mul ->
+										string_of_float (val1 *. val2)
+				| Op_div ->
+										string_of_float (val1 /. val2)
 
 		(* Function to execute a simple operation *)
 let int_operation_exec e1 op e2 =
@@ -78,7 +90,7 @@ let int_operation_exec e1 op e2 =
 			| Op_div -> print_endline ("div"^string_of_int (val1/val2));
 									string_of_int (val1 / val2)
 
-			(*)| Op_mod -> None
+			(*| Op_mod -> None
 			| Op_cor -> None
 			| Op_cand -> None
 			| Op_or -> None
@@ -102,6 +114,7 @@ let int_operation_exec e1 op e2 =
 				| Some(e) -> 			match e with
 														| Primitive prim -> match prim with
 																	| Int ->  int_operation_exec e1 inf_op e2
+																	| Float -> float_operation_exec e1 inf_op e2
 																	| _ -> "Unimplemented"
 														| _ -> "Uninplemented"
 (* The functions to execute a variable declaration *)
@@ -115,6 +128,7 @@ let rec get_value_of_exp exp=
 				(execute_op (get_value_of_exp e1) inf_op (get_value_of_exp e2) exp_type)
 		| Val x -> match x with
 			| Int n -> n
+			| Float f -> f
 			| _ -> print_endline "not implemented"; "0"
 		| _ -> print_endline "not implemented"; "0"
 

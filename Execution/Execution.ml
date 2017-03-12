@@ -39,18 +39,29 @@ let get_sub_env_by_type type_given mem =
 
 let add_new_variable_to_mem variable_type value name mem =
 	if (Env.mem mem variable_type) then
-		(print_endline "test1";
-		print_memory mem;
+		((* print_endline "test1";
+		print_memory mem ;*)
 		(Env.replace mem variable_type (Env.define (get_sub_env_by_type variable_type mem) name value));)
 	else
 		let new_mem = add_new_type_to_mem variable_type mem in
-		(print_endline "test2";
-		print_memory new_mem;
+		((* print_endline "test2";
+		print_memory new_mem; *)
 		Env.replace new_mem variable_type (Env.define (get_sub_env_by_type variable_type new_mem) name value);)
 
 
 let modify_variable_mem variable_type new_value name mem =
 	Env.replace mem variable_type (Env.replace (get_sub_env_by_type variable_type mem) name new_value)
+
+let get_variable_from_mem var_id mem = 
+  let res = ref "" in
+  let second_round env var_id = Env.iter (fun (key,value) -> 
+  	if (key = var_id) then res := value else () ) env in
+ (Env.iter (fun (key,value) -> second_round value var_id ) mem;
+  !res;)
+
+
+  
+
 
 (* Some functions to deal with the dark type from the AST *)
 
@@ -174,10 +185,10 @@ let execute_statement statement mem=
 (* Prends en argument la liste des statements de la methode en cours d execution, ainsi que la memoire qui a ete initialisee *)
 let rec execute_statements  statement_list mem =
 	match statement_list with
-		| [] -> print_endline "No more statement to execute \n";
-			print_endline "Here is the printing of the memory :";
+		| [] -> print_endline "\nNo more statement to execute \n";
+			print_endline "\nHere is the printing of the memory :\n";
 			mem
-		| h::t -> print_endline "Starting executing statements";
+		| h::t -> print_endline "\nStarting executing statements\n";
 				let new_mem = execute_statement h mem in
 				execute_statements t new_mem
 
@@ -193,7 +204,8 @@ let find_main env =
   	Env.iter (fun (key,value) ->  match (split_main key) with
 								|  "main" -> let res =start_point value in
 									print_memory res;
-									()
+									print_endline (get_variable_from_mem "b" res); 
+									() 
 								| _ -> ()
 	) env
 

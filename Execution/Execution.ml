@@ -52,6 +52,15 @@ let add_new_variable_to_mem variable_type value name mem =
 let modify_variable_mem variable_type new_value name mem =
 	Env.replace mem variable_type (Env.replace (get_sub_env_by_type variable_type mem) name new_value)
 
+(* return the type of a variable, given just its name *)
+let get_type_of_variable_from_mem var_id mem =
+let res = ref "" in
+  let second_round env var_id type_env= Env.iter (fun (key,value) -> 
+  	if (key = var_id) then res := type_env else () ) env in
+ (Env.iter (fun (key,value) -> second_round value var_id key) mem;
+  !res;)
+
+(* return the value of the varaible, given just its name *)
 let get_variable_from_mem var_id mem = 
   let res = ref "" in
   let second_round env var_id = Env.iter (fun (key,value) -> 
@@ -126,30 +135,31 @@ let int_operation_exec e1 op e2 =
 
 
 
-			let execute_op e1 inf_op e2 exp_type=
-			match exp_type with
-				| None -> print_endline "Type not found"; "Not found"
-				| Some(e) -> 			match e with
-														| Primitive prim -> match prim with
-																	| Int ->  int_operation_exec e1 inf_op e2
-																	| Float -> float_operation_exec e1 inf_op e2
-																	| Boolean -> boolean_operation_exec e1 inf_op e2
-																	| _ -> "Unimplemented"
-														| _ -> "Uninplemented"
+let execute_op e1 inf_op e2 exp_type=
+match exp_type with
+	| None -> print_endline "Type not found"; "Not found"
+	| Some(e) -> 			match e with
+											| Primitive prim -> match prim with
+														| Int ->  int_operation_exec e1 inf_op e2
+														| Float -> float_operation_exec e1 inf_op e2
+														| Boolean -> boolean_operation_exec e1 inf_op e2
+														| _ -> "Unimplemented"
+											| _ -> "Uninplemented"
 (* The functions to execute a variable declaration *)
 
 (* TODO : add all the type of exp *)
-let rec get_value_of_exp exp=
+let rec get_value_of_exp exp mem =
 	let exp_desc = exp.edesc in
 	let exp_type = exp.etype in
 	match exp_desc with
 		| Op(e1, inf_op, e2) ->
-				(execute_op (get_value_of_exp e1) inf_op (get_value_of_exp e2) exp_type)
-		| Val x -> match x with
+				(execute_op (get_value_of_exp e1 mem) inf_op (get_value_of_exp e2 mem) exp_type)
+		| Val x -> (match x with
 			| Int n -> n
 			| Float f -> f
 			| Boolean b -> string_of_bool b
-			| _ -> print_endline "not implemented"; "0"
+			| _ -> print_endline "not implemented"; "0")
+		| Name var_id -> get_variable_from_mem var_id mem
 		| _ -> print_endline "not implemented"; "0"
 
 let execute_vardecl_aux one_vd mem= match one_vd with
@@ -157,7 +167,7 @@ let execute_vardecl_aux one_vd mem= match one_vd with
 		let variable_type = get_string_type_from_typet type_ast in
 		let expdesc_of_exp = exp_value.edesc in
 		let given_type = exp_value.etype in
-		let var_value = get_value_of_exp exp_value  in
+		let var_value = get_value_of_exp exp_value mem in
 		(match given_type with
 				| None -> print_endline "lollololol"
 				| Some(type_found) -> print_endline ("LOOK HERE"^(Type.stringOf type_found)));

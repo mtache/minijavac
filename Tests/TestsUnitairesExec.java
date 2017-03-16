@@ -8,6 +8,7 @@ public class A {
         boolean a = true && false;
         boolean b = true && true;
         boolean c = true || false;
+        int e = x + d;
 
         // String s = "something in here";
     }

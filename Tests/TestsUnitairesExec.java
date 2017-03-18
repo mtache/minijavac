@@ -9,7 +9,13 @@ public class A {
         boolean b = true && true;
         boolean c = true || false;
         int e = x + d;
+         boolean p = d < x;
+         boolean jak1 = 5.2< 5;
 
+         boolean jak2 = 5 <= 5;
+         boolean jak3 = 5> 4;
+         boolean jak4 = 5.5 >= 6;
+        x = x+1;
         // String s = "something in here";
     }
 

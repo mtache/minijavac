@@ -55,21 +55,21 @@ let modify_variable_mem variable_type new_value name mem =
 (* return the type of a variable, given just its name *)
 let get_type_of_variable_from_mem var_id mem =
 let res = ref "" in
-  let second_round env var_id type_env= Env.iter (fun (key,value) -> 
+  let second_round env var_id type_env= Env.iter (fun (key,value) ->
   	if (key = var_id) then res := type_env else () ) env in
  (Env.iter (fun (key,value) -> second_round value var_id key) mem;
   !res;)
 
 (* return the value of the varaible, given just its name *)
-let get_variable_from_mem var_id mem = 
+let get_variable_from_mem var_id mem =
   let res = ref "" in
-  let second_round env var_id = Env.iter (fun (key,value) -> 
+  let second_round env var_id = Env.iter (fun (key,value) ->
   	if (key = var_id) then res := value else () ) env in
  (Env.iter (fun (key,value) -> second_round value var_id ) mem;
   !res;)
 
 
-  
+
 
 
 (* Some functions to deal with the dark type from the AST *)
@@ -92,6 +92,14 @@ let get_string_type_from_typet obscur_type =
 										string_of_float (val1 *. val2)
 				| Op_div ->
 										string_of_float (val1 /. val2)
+				| Op_lt ->
+										string_of_bool (val1 < val2)
+
+				| Op_le ->  string_of_bool (val1 <= val2)
+				| Op_gt ->  string_of_bool (val1 > val2)
+				| Op_ge ->  string_of_bool (val1 >= val2)
+
+
 
 		(* Function to execute a simple operation *)
 let boolean_operation_exec e1 op e2 =
@@ -101,46 +109,15 @@ let boolean_operation_exec e1 op e2 =
 			| Op_cand -> string_of_bool ( val1 && val2)
 			| Op_cor -> string_of_bool ( val1 || val2)
 
-let int_operation_exec e1 op e2 =
-		let val1 = int_of_string e1 in
-		let val2 = int_of_string e2 in
-		match op with
-			| Op_add -> print_endline ("Added"^string_of_int (val1+ val2));
-									string_of_int (val1+ val2)
-
-			| Op_sub -> print_endline ("sub"^string_of_int (val1- val2));
-									string_of_int (val1- val2)
-
-			| Op_mul -> print_endline ("mul"^string_of_int (val1* val2));
-									string_of_int (val1 * val2)
-
-			| Op_div -> print_endline ("div"^string_of_int (val1/val2));
-									string_of_int (val1 / val2)
-
-			(*| Op_mod -> None
-			| Op_cor -> None
-			| Op_cand -> None
-			| Op_or -> None
-			| Op_and -> None
-			| Op_xor -> None
-			| Op_eq -> None
-			| Op_ne -> None
-			| Op_gt -> None
-			| Op_lt -> None
-			| Op_ge -> None
-			| Op_le -> None
-			| Op_shl -> None
-			| Op_shr -> None
-			| Op_shrr -> None *)
-
-
-
 let execute_op e1 inf_op e2 exp_type=
+match e1 with
+| _ -> print_endline ("HEEEEERE!!!!!>"^e1);
+
 match exp_type with
 	| None -> print_endline "Type not found"; "Not found"
 	| Some(e) -> 			match e with
 											| Primitive prim -> match prim with
-														| Int ->  int_operation_exec e1 inf_op e2
+														| Int ->  float_operation_exec e1 inf_op e2
 														| Float -> float_operation_exec e1 inf_op e2
 														| Boolean -> boolean_operation_exec e1 inf_op e2
 														| _ -> "Unimplemented"
@@ -150,9 +127,10 @@ match exp_type with
 (* TODO : add all the type of exp *)
 let rec get_value_of_exp exp mem =
 	let exp_desc = exp.edesc in
-	let exp_type = exp.etype in
+	(* let exp_type = exp.etype in *)
 	match exp_desc with
 		| Op(e1, inf_op, e2) ->
+			let exp_type = e1.etype in
 				(execute_op (get_value_of_exp e1 mem) inf_op (get_value_of_exp e2 mem) exp_type)
 		| Val x -> (match x with
 			| Int n -> n
@@ -214,8 +192,8 @@ let find_main env =
   	Env.iter (fun (key,value) ->  match (split_main key) with
 								|  "main" -> let res =start_point value in
 									print_memory res;
-									print_endline (get_variable_from_mem "b" res); 
-									() 
+									print_endline (get_variable_from_mem "b" res);
+									()
 								| _ -> ()
 	) env
 

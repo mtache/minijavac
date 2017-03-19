@@ -147,15 +147,18 @@ let rec get_value_of_exp exp mem =
 let execute_expression exp mem =
 		let ex_desc = exp.edesc in
 			match ex_desc with
-			(* | Op(e1, inf_op, e2) -> *)
-			| AssignExp(e1,op,e2) ->
-																let exp_type = e1.etype in
+				| AssignExp(e1,op,e2) -> match e1.etype with 
+											| Some(ex_type) -> 	let ex_type_bis = (Type.stringOf ex_type ) in
 															 print_endline "AAAAAAAAAAAAAAAAAAAAAAAAAAAA";
 															 print_endline (AST.string_of_expression e1);
 
 																 (* "sdfsdf" *)
-															 add_new_variable_to_mem e1.etype (get_value_of_exp e2 mem) (get_value_of_exp e1 mem ) mem
+															 add_new_variable_to_mem ex_type_bis (get_value_of_exp e2 mem) (get_value_of_exp e1 mem ) mem
+											| None -> print_endline "not implemented"; mem
 																	 (* "0" *)
+			(* | Op(e1, inf_op, e2) -> *)
+
+
 let execute_vardecl_aux one_vd mem= match one_vd with
 	| (type_ast, name, Some(exp_value)) ->
 		let variable_type = get_string_type_from_typet type_ast in

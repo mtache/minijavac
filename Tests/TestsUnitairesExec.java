@@ -15,6 +15,8 @@ public class A {
          boolean comp3 = 5 > 4;
          boolean comp4 = 5.5 >= 3 && true;
 
+         e = e + 1;
+
 
         // x = 5;
         // String s = "something in here";

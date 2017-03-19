@@ -49,6 +49,15 @@ let add_new_variable_to_mem variable_type value name mem =
 		Env.replace new_mem variable_type (Env.define (get_sub_env_by_type variable_type new_mem) name value);)
 
 
+(* TEst *)
+let modify_variable_mem_bis var_id new_value mem =
+	let res = ref (Env.initial()) in 
+	let type_key = ref "" in
+  	let second_round env var_id new_value var_type= Env.iter (fun (key,value) -> 
+  		if (key = var_id) then ( type_key := var_type; res := (Env.replace env var_id new_value); )) env in
+	(Env.iter (fun (key,value) -> second_round value var_id new_value key) mem; 
+	Env.replace mem !type_key !res)
+
 let modify_variable_mem variable_type new_value name mem =
 	Env.replace mem variable_type (Env.replace (get_sub_env_by_type variable_type mem) name new_value)
 
@@ -126,6 +135,10 @@ match exp_type with
 
 (* The functions to execute a variable declaration *)
 
+let get_variable_name_of_exp_desc exp_desc mem =
+	match exp_desc with 
+		| Name truc -> truc
+		| _ -> "Not implemented"
 
 (* TODO : add all the type of exp *)
 let rec get_value_of_exp exp mem =
@@ -148,13 +161,17 @@ let execute_expression exp mem =
 		let ex_desc = exp.edesc in
 			match ex_desc with
 				| AssignExp(e1,op,e2) -> match e1.etype with 
-											| Some(ex_type) -> 	let ex_type_bis = (Type.stringOf ex_type ) in
-															 print_endline "AAAAAAAAAAAAAAAAAAAAAAAAAAAA";
-															 print_endline (AST.string_of_expression e1);
+						| Some(ex_type) -> 	let ex_type_bis = (Type.stringOf ex_type ) in begin
+							 match op with 
+							 	| Assign -> modify_variable_mem_bis (get_variable_name_of_exp_desc e1.edesc mem) (get_value_of_exp e2 mem)  mem
+								| _ -> print_endline "Not implemented"; mem
+							end
+							 (* print_endline "AAAAAAAAAAAAAAAAAAAAAAAAAAAA";
+							 print_endline (AST.string_of_expression e1);
 
 																 (* "sdfsdf" *)
-															 add_new_variable_to_mem ex_type_bis (get_value_of_exp e2 mem) (get_value_of_exp e1 mem ) mem
-											| None -> print_endline "not implemented"; mem
+							add_new_variable_to_mem ex_type_bis (get_value_of_exp e2 mem) (get_value_of_exp e1 mem ) mem *)
+						| None -> print_endline "not implemented"; mem
 																	 (* "0" *)
 			(* | Op(e1, inf_op, e2) -> *)
 

@@ -20,7 +20,7 @@ let build_object_descriptor c_ast c_name =
 
 let rec concat_method_tables = function
     | [] -> Env.initial()
-    | method_table::others -> Env.merge method_table (concat_method_tables others) 
+    | method_table::others -> Env.merge method_table (concat_method_tables others)
 
 let rec build_object_descriptor_table = function
     | [] -> Env.initial()
@@ -37,13 +37,13 @@ let parser ast f =
      | h::t -> (type_parse h)::(type_list_parse t)
   in type_list_parse ast.type_list
 
-let execute lexbuf verbose = 
+let execute lexbuf verbose =
   let init ast =
     let method_table = concat_method_tables (parser ast build_method_table)
     and object_descriptor_table = build_object_descriptor_table (parser ast build_object_descriptor)
     in (method_table, object_descriptor_table)
   in
-  try 
+  try
    (* MAIN ALGORITHM *)
     let ast = Parser.compilationUnit Lexer.token lexbuf in
     print_endline "successfull parsing";
@@ -52,12 +52,14 @@ let execute lexbuf verbose =
     Typing.execute method_table object_descriptor_table;
     print_endline "successfull typing check";
     (* Starting execution *)
-    print_endline "\n EXECUTION : "; 
+
+    AST.print_program ast;
+    print_endline "\n EXECUTION : ";
     Execution.find_main method_table;
     print_endline "\n END EXECUTION : ";
     (* End execution *)
     (* END - MAIN ALGORITHM *)
-  with 
+  with
     | Parser.Error ->
       print_string "Syntax error: ";
       Location.print (Location.curr lexbuf)

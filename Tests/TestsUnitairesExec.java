@@ -10,12 +10,13 @@ public class A {
         boolean c = true || false;
         int e = x + d;
          boolean p = d < x;
-         boolean jak1 = 5.2< 5;
+         boolean comp1 = 5.2< 5;
+         boolean comp2 = 5 <= 5.1;
+         boolean comp3 = 5 > 4;
+         boolean comp4 = 5.5 >= 3 && true;
 
-         boolean jak2 = 5 <= 5;
-         boolean jak3 = 5> 4;
-         boolean jak4 = 5.5 >= 6;
-        x = x+1;
+
+        // x = 5;
         // String s = "something in here";
     }
 

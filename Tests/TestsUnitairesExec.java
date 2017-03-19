@@ -16,7 +16,12 @@ public class A {
          boolean comp4 = 5.5 >= 3 && true;
 
          if(x<5) {
-           x = 10;
+           x += 1;
+         }
+         int whiler = 0;
+
+         while(whiler<5) {
+           whiler+=4  ;
          }
          e = e + 1;
          e += 1;

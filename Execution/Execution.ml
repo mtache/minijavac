@@ -166,15 +166,15 @@ let execute_expression exp mem =
 				| AssignExp(e1,op,e2) -> match e1.etype with
 						| Some(ex_type) -> 	let ex_type_bis = (Type.stringOf ex_type ) in begin
 							 match op with
-							 	| Assign -> modify_variable_mem_bis (get_variable_name_of_exp_desc e1.edesc mem) (get_value_of_exp e2 mem)  mem
+							 	| Assign -> print_endline "assign"; modify_variable_mem_bis (get_variable_name_of_exp_desc e1.edesc mem) (get_value_of_exp e2 mem)  mem
 							 	| Ass_add -> let new_value = execute_op (get_value_of_exp e1 mem) Op_add (get_value_of_exp e2 mem) e1.etype in
-							 		modify_variable_mem_bis (get_variable_name_of_exp_desc e1.edesc mem) (new_value)  mem	
+							 		modify_variable_mem_bis (get_variable_name_of_exp_desc e1.edesc mem) (new_value)  mem
 								| Ass_sub -> let new_value = execute_op (get_value_of_exp e1 mem) Op_sub (get_value_of_exp e2 mem) e1.etype in
-							 		modify_variable_mem_bis (get_variable_name_of_exp_desc e1.edesc mem) (new_value)  mem	
+							 		modify_variable_mem_bis (get_variable_name_of_exp_desc e1.edesc mem) (new_value)  mem
 								| Ass_mul -> let new_value = execute_op (get_value_of_exp e1 mem) Op_mul (get_value_of_exp e2 mem) e1.etype in
-							 		modify_variable_mem_bis (get_variable_name_of_exp_desc e1.edesc mem) (new_value)  mem	
+							 		modify_variable_mem_bis (get_variable_name_of_exp_desc e1.edesc mem) (new_value)  mem
 								| Ass_div -> let new_value = execute_op (get_value_of_exp e1 mem) Op_div (get_value_of_exp e2 mem) e1.etype in
-							 		modify_variable_mem_bis (get_variable_name_of_exp_desc e1.edesc mem) (new_value)  mem	
+							 		modify_variable_mem_bis (get_variable_name_of_exp_desc e1.edesc mem) (new_value)  mem
 								| _ -> print_endline "Not implemented"; mem
 							end
 						| None -> print_endline "not implemented"; mem
@@ -210,24 +210,41 @@ let rec execute_vardecl vd_list mem = match vd_list with
 let exp1 = e1.edesc i in
 	if  bool_of_string (get_value_of_exp c mem) then  (execute_expression e1 mem) else (execute_expression e2 mem) ; mem *)
 
+
 let rec execute_statement statement mem=
 	match statement with
 		| VarDecl dl -> execute_vardecl dl mem
 		| Expr exp ->  execute_expression exp mem
-		| If(e1, stat1, stat2) -> 
+		| While(e1, s1 ) ->
+		let rec while_loop e1 s1 mem =
+			if bool_of_string (get_value_of_exp e1 mem);
+			then ( print_endline "whileeeee";
+							while_loop e1 s1  (execute_statement s1 mem))
+			else  mem
+			in while_loop e1 s1 mem
+			(* print_endline "while statement";
+			let new_mem  = execute_statement s1 mem;
+			let bool_e1 = get_value_of_exp e1 mem in
+			while (bool_of_string bool_e1)
+				do print_endline "whileeeee"; (execute_statement s1 mem;) done; mem *)
+
+		| If(e1, stat1, stat2) ->
 			(print_endline "if statement";
 			let bool_e1 = get_value_of_exp e1 mem in
-			if (bool_of_string bool_e1) 
+			if (bool_of_string bool_e1)
 				then (print_endline "haha"; execute_statement stat1 mem)
 			else begin
+			print_endline "nono";
 				match stat2 with
 				| Some(stat) -> execute_statement stat mem
 				| None -> mem
 			end)
-		| Block(stat_list) -> 
-			(match stat_list with
+		| Block(stat_list) ->
+			(print_endline "WHATAAA";
+				match stat_list with
+
 				| [] -> mem
-				| h::q -> 
+				| h::q ->
 					let new_mem = (execute_statement h mem) in
 					let test_one = Block(q) in
 					execute_statement test_one new_mem )

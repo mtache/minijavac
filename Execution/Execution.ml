@@ -107,6 +107,7 @@ let get_string_type_from_typet obscur_type =
 				| Op_le ->  string_of_bool (val1 <= val2)
 				| Op_gt ->  string_of_bool (val1 > val2)
 				| Op_ge ->  string_of_bool (val1 >= val2)
+				| Op_eq -> string_of_bool (val1 = val2)
 
 
 
@@ -117,6 +118,7 @@ let boolean_operation_exec e1 op e2 =
 			match op with
 			| Op_cand -> string_of_bool ( val1 && val2)
 			| Op_cor -> string_of_bool ( val1 || val2)
+			| Op_eq -> string_of_bool (val1 = val2)
 
 let execute_op e1 inf_op e2 exp_type=
 match exp_type with
@@ -208,13 +210,28 @@ let rec execute_vardecl vd_list mem = match vd_list with
 let exp1 = e1.edesc i in
 	if  bool_of_string (get_value_of_exp c mem) then  (execute_expression e1 mem) else (execute_expression e2 mem) ; mem *)
 
-let  rec execute_statement statement mem=
+let rec execute_statement statement mem=
 	match statement with
 		| VarDecl dl -> execute_vardecl dl mem
 		| Expr exp ->  execute_expression exp mem
-		| If (c, s, None) ->  if  bool_of_string (get_value_of_exp c mem) then execute_statement s mem;
-		(* | While (c,s) -> while bool_of_string (get_value_of_exp c mem) do (execute_statement s mem) done; mem *)
-		| _ -> print_endline "not impls"; mem
+		| If(e1, stat1, stat2) -> 
+			(print_endline "if statement";
+			let bool_e1 = get_value_of_exp e1 mem in
+			if (bool_of_string bool_e1) 
+				then (print_endline "haha"; execute_statement stat1 mem)
+			else begin
+				match stat2 with
+				| Some(stat) -> execute_statement stat mem
+				| None -> mem
+			end)
+		| Block(stat_list) -> 
+			(match stat_list with
+				| [] -> mem
+				| h::q -> 
+					let new_mem = (execute_statement h mem) in
+					let test_one = Block(q) in
+					execute_statement test_one new_mem )
+		| _ -> print_endline "not implemented"; mem
 
 
 (* Prends en argument la liste des statements de la methode en cours d execution, ainsi que la memoire qui a ete initialisee *)

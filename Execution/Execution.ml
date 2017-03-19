@@ -51,11 +51,11 @@ let add_new_variable_to_mem variable_type value name mem =
 
 (* two functions to modify variables in memory. The function "bis" does not need the type of the variable *)
 let modify_variable_mem_bis var_id new_value mem =
-	let res = ref (Env.initial()) in 
+	let res = ref (Env.initial()) in
 	let type_key = ref "" in
-  	let second_round env var_id new_value var_type= Env.iter (fun (key,value) -> 
+  	let second_round env var_id new_value var_type= Env.iter (fun (key,value) ->
   		if (key = var_id) then ( type_key := var_type; res := (Env.replace env var_id new_value); )) env in
-	(Env.iter (fun (key,value) -> second_round value var_id new_value key) mem; 
+	(Env.iter (fun (key,value) -> second_round value var_id new_value key) mem;
 	Env.replace mem !type_key !res)
 
 let modify_variable_mem variable_type new_value name mem =
@@ -136,7 +136,7 @@ match exp_type with
 (* The functions to execute a variable declaration *)
 
 let get_variable_name_of_exp_desc exp_desc mem =
-	match exp_desc with 
+	match exp_desc with
 		| Name truc -> truc
 		| _ -> "Not implemented"
 
@@ -161,9 +161,9 @@ let rec get_value_of_exp exp mem =
 let execute_expression exp mem =
 		let ex_desc = exp.edesc in
 			match ex_desc with
-				| AssignExp(e1,op,e2) -> match e1.etype with 
+				| AssignExp(e1,op,e2) -> match e1.etype with
 						| Some(ex_type) -> 	let ex_type_bis = (Type.stringOf ex_type ) in begin
-							 match op with 
+							 match op with
 							 	| Assign -> modify_variable_mem_bis (get_variable_name_of_exp_desc e1.edesc mem) (get_value_of_exp e2 mem)  mem
 							 	| Ass_add -> let new_value = execute_op (get_value_of_exp e1 mem) Op_add (get_value_of_exp e2 mem) e1.etype in
 							 		modify_variable_mem_bis (get_variable_name_of_exp_desc e1.edesc mem) (new_value)  mem	
@@ -175,11 +175,6 @@ let execute_expression exp mem =
 							 		modify_variable_mem_bis (get_variable_name_of_exp_desc e1.edesc mem) (new_value)  mem	
 								| _ -> print_endline "Not implemented"; mem
 							end
-							 (* print_endline "AAAAAAAAAAAAAAAAAAAAAAAAAAAA";
-							 print_endline (AST.string_of_expression e1);
-
-																 (* "sdfsdf" *)
-							add_new_variable_to_mem ex_type_bis (get_value_of_exp e2 mem) (get_value_of_exp e1 mem ) mem *)
 						| None -> print_endline "not implemented"; mem
 																	 (* "0" *)
 			(* | Op(e1, inf_op, e2) -> *)
@@ -209,23 +204,28 @@ let rec execute_vardecl vd_list mem = match vd_list with
 
 (* the MAIN algorithm : *)
 
+(* let execute_if c e1  mem =
+let exp1 = e1.edesc i in
+	if  bool_of_string (get_value_of_exp c mem) then  (execute_expression e1 mem) else (execute_expression e2 mem) ; mem *)
 
-let execute_statement statement mem=
+let  rec execute_statement statement mem=
 	match statement with
 		| VarDecl dl -> execute_vardecl dl mem
 		| Expr exp ->  execute_expression exp mem
-		| _ -> print_endline "not implemented"; mem
+		| If (c, s, None) ->  if  bool_of_string (get_value_of_exp c mem) then execute_statement s mem;
+		(* | While (c,s) -> while bool_of_string (get_value_of_exp c mem) do (execute_statement s mem) done; mem *)
+		| _ -> print_endline "not impls"; mem
 
 
 (* Prends en argument la liste des statements de la methode en cours d execution, ainsi que la memoire qui a ete initialisee *)
 let rec execute_statements  statement_list mem =
-	match statement_list with
+ match statement_list with
 		| [] -> print_endline "\nNo more statement to execute \n";
 			print_endline "\nHere is the printing of the memory :\n";
 			mem
 		| h::t -> print_endline "\nStarting executing statements\n";
-				let new_mem = execute_statement h mem in
-				execute_statements t new_mem
+			let new_mem = execute_statement h mem in
+			execute_statements t new_mem
 
 (* Lancement de l execution sur la methode main detectee *)
 let start_point astmethod_main =

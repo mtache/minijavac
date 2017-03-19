@@ -49,7 +49,7 @@ let add_new_variable_to_mem variable_type value name mem =
 		Env.replace new_mem variable_type (Env.define (get_sub_env_by_type variable_type new_mem) name value);)
 
 
-(* TEst *)
+(* two functions to modify variables in memory. The function "bis" does not need the type of the variable *)
 let modify_variable_mem_bis var_id new_value mem =
 	let res = ref (Env.initial()) in 
 	let type_key = ref "" in
@@ -157,6 +157,7 @@ let rec get_value_of_exp exp mem =
 		| _ -> print_endline "not implemented"; "0"
 
 
+(* executing the statements of type expression *)
 let execute_expression exp mem =
 		let ex_desc = exp.edesc in
 			match ex_desc with
@@ -164,6 +165,14 @@ let execute_expression exp mem =
 						| Some(ex_type) -> 	let ex_type_bis = (Type.stringOf ex_type ) in begin
 							 match op with 
 							 	| Assign -> modify_variable_mem_bis (get_variable_name_of_exp_desc e1.edesc mem) (get_value_of_exp e2 mem)  mem
+							 	| Ass_add -> let new_value = execute_op (get_value_of_exp e1 mem) Op_add (get_value_of_exp e2 mem) e1.etype in
+							 		modify_variable_mem_bis (get_variable_name_of_exp_desc e1.edesc mem) (new_value)  mem	
+								| Ass_sub -> let new_value = execute_op (get_value_of_exp e1 mem) Op_sub (get_value_of_exp e2 mem) e1.etype in
+							 		modify_variable_mem_bis (get_variable_name_of_exp_desc e1.edesc mem) (new_value)  mem	
+								| Ass_mul -> let new_value = execute_op (get_value_of_exp e1 mem) Op_mul (get_value_of_exp e2 mem) e1.etype in
+							 		modify_variable_mem_bis (get_variable_name_of_exp_desc e1.edesc mem) (new_value)  mem	
+								| Ass_div -> let new_value = execute_op (get_value_of_exp e1 mem) Op_div (get_value_of_exp e2 mem) e1.etype in
+							 		modify_variable_mem_bis (get_variable_name_of_exp_desc e1.edesc mem) (new_value)  mem	
 								| _ -> print_endline "Not implemented"; mem
 							end
 							 (* print_endline "AAAAAAAAAAAAAAAAAAAAAAAAAAAA";
@@ -174,7 +183,6 @@ let execute_expression exp mem =
 						| None -> print_endline "not implemented"; mem
 																	 (* "0" *)
 			(* | Op(e1, inf_op, e2) -> *)
-
 
 let execute_vardecl_aux one_vd mem= match one_vd with
 	| (type_ast, name, Some(exp_value)) ->
@@ -189,6 +197,8 @@ let execute_vardecl_aux one_vd mem= match one_vd with
 	| _ -> print_endline "not implemented"; mem
 
 
+
+(* Executing the statements of type "variable declaration" *)
 
 let rec execute_vardecl vd_list mem = match vd_list with
 	| [] -> print_endline "vardecl finished or empty"; mem

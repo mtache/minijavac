@@ -16,6 +16,7 @@ public class A {
          boolean comp4 = 5.5 >= 3 && true;
 
          e = e + 1;
+         e += 1;
 
 
         // x = 5;

@@ -49,6 +49,15 @@ let add_new_variable_to_mem variable_type value name mem =
 		Env.replace new_mem variable_type (Env.define (get_sub_env_by_type variable_type new_mem) name value);)
 
 
+(* TEst *)
+let modify_variable_mem_bis var_id new_value mem =
+	let res = ref (Env.initial()) in 
+	let type_key = ref "" in
+  	let second_round env var_id new_value var_type= Env.iter (fun (key,value) -> 
+  		if (key = var_id) then ( type_key := var_type; res := (Env.replace env var_id new_value); )) env in
+	(Env.iter (fun (key,value) -> second_round value var_id new_value key) mem; 
+	Env.replace mem !type_key !res)
+
 let modify_variable_mem variable_type new_value name mem =
 	Env.replace mem variable_type (Env.replace (get_sub_env_by_type variable_type mem) name new_value)
 
@@ -110,9 +119,6 @@ let boolean_operation_exec e1 op e2 =
 			| Op_cor -> string_of_bool ( val1 || val2)
 
 let execute_op e1 inf_op e2 exp_type=
-match e1 with
-| _ -> print_endline ("HEEEEERE!!!!!>"^e1);
-
 match exp_type with
 	| None -> print_endline "Type not found"; "Not found"
 	| Some(e) -> 			match e with
@@ -122,7 +128,17 @@ match exp_type with
 														| Boolean -> boolean_operation_exec e1 inf_op e2
 														| _ -> "Unimplemented"
 											| _ -> "Uninplemented"
+
+
+
+
+
 (* The functions to execute a variable declaration *)
+
+let get_variable_name_of_exp_desc exp_desc mem =
+	match exp_desc with 
+		| Name truc -> truc
+		| _ -> "Not implemented"
 
 (* TODO : add all the type of exp *)
 let rec get_value_of_exp exp mem =
@@ -130,7 +146,7 @@ let rec get_value_of_exp exp mem =
 	(* let exp_type = exp.etype in *)
 	match exp_desc with
 		| Op(e1, inf_op, e2) ->
-			let exp_type = e1.etype in
+		let exp_type = e1.etype in
 				(execute_op (get_value_of_exp e1 mem) inf_op (get_value_of_exp e2 mem) exp_type)
 		| Val x -> (match x with
 			| Int n -> n
@@ -139,6 +155,26 @@ let rec get_value_of_exp exp mem =
 			| _ -> print_endline "not implemented"; "0")
 		| Name var_id -> get_variable_from_mem var_id mem
 		| _ -> print_endline "not implemented"; "0"
+
+
+let execute_expression exp mem =
+		let ex_desc = exp.edesc in
+			match ex_desc with
+				| AssignExp(e1,op,e2) -> match e1.etype with 
+						| Some(ex_type) -> 	let ex_type_bis = (Type.stringOf ex_type ) in begin
+							 match op with 
+							 	| Assign -> modify_variable_mem_bis (get_variable_name_of_exp_desc e1.edesc mem) (get_value_of_exp e2 mem)  mem
+								| _ -> print_endline "Not implemented"; mem
+							end
+							 (* print_endline "AAAAAAAAAAAAAAAAAAAAAAAAAAAA";
+							 print_endline (AST.string_of_expression e1);
+
+																 (* "sdfsdf" *)
+							add_new_variable_to_mem ex_type_bis (get_value_of_exp e2 mem) (get_value_of_exp e1 mem ) mem *)
+						| None -> print_endline "not implemented"; mem
+																	 (* "0" *)
+			(* | Op(e1, inf_op, e2) -> *)
+
 
 let execute_vardecl_aux one_vd mem= match one_vd with
 	| (type_ast, name, Some(exp_value)) ->
@@ -167,6 +203,7 @@ let rec execute_vardecl vd_list mem = match vd_list with
 let execute_statement statement mem=
 	match statement with
 		| VarDecl dl -> execute_vardecl dl mem
+		| Expr exp ->  execute_expression exp mem
 		| _ -> print_endline "not implemented"; mem
 
 

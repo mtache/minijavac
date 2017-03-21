@@ -56,7 +56,7 @@ let execute lexbuf verbose =
     AST.print_program ast;
     print_endline "\n EXECUTION : ";
     Execution.find_main method_table;
-    print_endline "\n END EXECUTION : ";
+    print_endline "\n END EXECUTION ";
     (* End execution *)
     (* END - MAIN ALGORITHM *)
   with

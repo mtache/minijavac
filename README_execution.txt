@@ -39,3 +39,7 @@ About the eexpressions, we are able to calculate many things, numbers and boolea
 
 We simplified the basic operations by considering almost every numeric variable as a float, to go faster to the most interesting parts. We are thus able to execute basic algorithms using the statements listed before.
 
+To run the execution, type :
+ocamlbuild Main.byte -- Tests/TestsUnitairesExec.java
+on a terminal.
+

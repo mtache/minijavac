@@ -29,11 +29,13 @@ public class A {
          for (int i =0; i < 5; i = i +1) {
             d += 1;
          }
-        
+         //deuxième exemple de for
+        int n = 1 ;
+        int v=1;
+        for (n; (n < 10) && true ; n = n +2) {
+            v += 1;
+         }
          
-
-        // x = 5;
-        // String s = "something in here";
     }
 
     public void m2() {

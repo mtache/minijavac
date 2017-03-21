@@ -158,7 +158,7 @@ let execute_expression exp mem =
 				| AssignExp(e1,op,e2) -> match e1.etype with
 						| Some(ex_type) -> 	let ex_type_bis = (Type.stringOf ex_type ) in begin
 							 match op with
-							 	| Assign -> print_endline "assign"; modify_variable_mem_bis (get_variable_name_of_exp_desc e1.edesc mem) (get_value_of_exp e2 mem)  mem
+							 	| Assign -> modify_variable_mem_bis (get_variable_name_of_exp_desc e1.edesc mem) (get_value_of_exp e2 mem)  mem
 							 	| Ass_add -> let new_value = execute_op (get_value_of_exp e1 mem) Op_add (get_value_of_exp e2 mem) e1.etype in
 							 		modify_variable_mem_bis (get_variable_name_of_exp_desc e1.edesc mem) (new_value)  mem
 								| Ass_sub -> let new_value = execute_op (get_value_of_exp e1 mem) Op_sub (get_value_of_exp e2 mem) e1.etype in
@@ -190,7 +190,7 @@ let execute_vardecl_aux one_vd mem= match one_vd with
 (* Executing the statements of type "variable declaration" *)
 
 let rec execute_vardecl vd_list mem = match vd_list with
-	| [] -> print_endline "vardecl finished or empty"; mem
+	| [] -> (* print_endline "vardecl finished or empty"; *) mem
 	| h::q ->
 		let new_mem = execute_vardecl_aux h mem in
 				(execute_vardecl q new_mem )
@@ -202,17 +202,14 @@ let rec execute_statement statement mem=
 		| VarDecl dl -> execute_vardecl dl mem
 		| Expr exp ->  execute_expression exp mem
 		| While(e1, s1 ) ->
-		let rec while_loop e1 s1 mem =
-			if bool_of_string (get_value_of_exp e1 mem);
-			then ( print_endline "Starting while statement";
-							while_loop e1 s1  (execute_statement s1 mem))
-			else  mem
-			in while_loop e1 s1 mem
-			(* print_endline "while statement";
-			let new_mem  = execute_statement s1 mem;
-			let bool_e1 = get_value_of_exp e1 mem in
-			while (bool_of_string bool_e1)
-				do print_endline "whileeeee"; (execute_statement s1 mem;) done; mem *)
+			(
+				let rec while_loop e1 s1 mem =
+					if bool_of_string (get_value_of_exp e1 mem);
+					then ( print_endline "Starting while statement";
+									while_loop e1 s1  (execute_statement s1 mem))
+					else  mem
+					in while_loop e1 s1 mem
+			)
 
 		| If(e1, stat1, stat2) ->
 			(
@@ -258,7 +255,6 @@ let rec execute_statement statement mem=
 						(let new_mem_for = new_mem_aux h mem in
 						let new_mem_res = new_mem q new_mem_for in
 						begin
-							print_memory new_mem_res;
 							new_mem_res
 						end)
 				)
@@ -284,7 +280,6 @@ let rec execute_statement statement mem=
 				(
 					let m2 = incr inc_op_list m1 in
 					(
-						print_memory m2;
 						m2
 					)
 				)
@@ -327,7 +322,7 @@ let rec execute_statements  statement_list mem =
 		| [] -> print_endline "\nNo more statement to execute \n";
 			print_endline "\nHere is the printing of the memory :\n";
 			mem
-		| h::t -> print_endline "\nStarting executing statements\n";
+		| h::t -> (* print_endline "\nStarting executing statements\n"; *)
 			let new_mem = execute_statement h mem in
 			execute_statements t new_mem
 
@@ -343,7 +338,6 @@ let find_main env =
   	Env.iter (fun (key,value) ->  match (split_main key) with
 								|  "main" -> let res =start_point value in
 									print_memory res;
-									print_endline (get_variable_from_mem "b" res);
 									()
 								| _ -> ()
 	) env

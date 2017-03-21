@@ -89,27 +89,19 @@ let get_string_type_from_typet obscur_type =
 	Type.stringOf obscur_type
 
 
-	let float_operation_exec e1 op e2 =
-			let val1 = float_of_string e1 in
-			let val2 = float_of_string e2 in
-			match op with
-				| Op_add ->
-										string_of_float (val1 +. val2)
-				| Op_sub ->
-										string_of_float (val1 -. val2)
-				| Op_mul ->
-										string_of_float (val1 *. val2)
-				| Op_div ->
-										string_of_float (val1 /. val2)
-				| Op_lt ->
-										string_of_bool (val1 < val2)
-
-				| Op_le ->  string_of_bool (val1 <= val2)
-				| Op_gt ->  string_of_bool (val1 > val2)
-				| Op_ge ->  string_of_bool (val1 >= val2)
-				| Op_eq -> string_of_bool (val1 = val2)
-
-
+let float_operation_exec e1 op e2 =
+		let val1 = float_of_string e1 in
+		let val2 = float_of_string e2 in
+		match op with
+			| Op_add -> string_of_float (val1 +. val2)
+			| Op_sub -> string_of_float (val1 -. val2)
+			| Op_mul -> string_of_float (val1 *. val2)
+			| Op_div -> string_of_float (val1 /. val2)
+			| Op_lt ->  string_of_bool (val1 < val2)
+			| Op_le ->  string_of_bool (val1 <= val2)
+			| Op_gt ->  string_of_bool (val1 > val2)
+			| Op_ge ->  string_of_bool (val1 >= val2)
+			| Op_eq ->  string_of_bool (val1 = val2)
 
 		(* Function to execute a simple operation *)
 let boolean_operation_exec e1 op e2 =
@@ -187,9 +179,9 @@ let execute_vardecl_aux one_vd mem= match one_vd with
 		let expdesc_of_exp = exp_value.edesc in
 		let given_type = exp_value.etype in
 		let var_value = get_value_of_exp exp_value mem in
-		(match given_type with
+		(* (match given_type with
 				| None -> print_endline "lollololol"
-				| Some(type_found) -> print_endline ("LOOK HERE"^(Type.stringOf type_found)));
+				| Some(type_found) -> print_endline ("LOOK HERE"^(Type.stringOf type_found))); *)
 		add_new_variable_to_mem variable_type var_value name mem
 	| _ -> print_endline "not implemented"; mem
 
@@ -205,12 +197,6 @@ let rec execute_vardecl vd_list mem = match vd_list with
 
 
 (* the MAIN algorithm : *)
-
-(* let execute_if c e1  mem =
-let exp1 = e1.edesc i in
-	if  bool_of_string (get_value_of_exp c mem) then  (execute_expression e1 mem) else (execute_expression e2 mem) ; mem *)
-
-
 let rec execute_statement statement mem=
 	match statement with
 		| VarDecl dl -> execute_vardecl dl mem
@@ -218,7 +204,7 @@ let rec execute_statement statement mem=
 		| While(e1, s1 ) ->
 		let rec while_loop e1 s1 mem =
 			if bool_of_string (get_value_of_exp e1 mem);
-			then ( print_endline "whileeeee";
+			then ( print_endline "Starting while statement";
 							while_loop e1 s1  (execute_statement s1 mem))
 			else  mem
 			in while_loop e1 s1 mem
@@ -229,25 +215,109 @@ let rec execute_statement statement mem=
 				do print_endline "whileeeee"; (execute_statement s1 mem;) done; mem *)
 
 		| If(e1, stat1, stat2) ->
-			(print_endline "if statement";
-			let bool_e1 = get_value_of_exp e1 mem in
-			if (bool_of_string bool_e1)
-				then (print_endline "haha"; execute_statement stat1 mem)
-			else begin
-			print_endline "nono";
-				match stat2 with
-				| Some(stat) -> execute_statement stat mem
-				| None -> mem
-			end)
+			(
+				print_endline "Starting If statement";
+				let bool_e1 = get_value_of_exp e1 mem in
+				if (bool_of_string bool_e1)
+					then (execute_statement stat1 mem)
+				else begin
+					match stat2 with
+					| Some(stat) -> execute_statement stat mem
+					| None -> mem
+				end
+			)
 		| Block(stat_list) ->
-			(print_endline "WHATAAA";
+			(
+				print_endline "Starting Block statement";
 				match stat_list with
 
 				| [] -> mem
 				| h::q ->
 					let new_mem = (execute_statement h mem) in
 					let test_one = Block(q) in
-					execute_statement test_one new_mem )
+					execute_statement test_one new_mem 
+			)
+		| For(dec_list, bool_limit, inc_op_list, stat) ->
+			(* Instanciation of the variable which will move - tested OK *)
+			let new_mem_aux vardec mem =
+				match vardec with
+					| (Some(type_ast), name, Some(exp_value)) ->
+						let variable_type = get_string_type_from_typet type_ast in
+						let expdesc_of_exp = exp_value.edesc in
+						let given_type = exp_value.etype in
+						let var_value = get_value_of_exp exp_value mem in
+						add_new_variable_to_mem variable_type var_value name mem
+					| (None, name, Some(exp_value)) -> modify_variable_mem_bis name (get_value_of_exp exp_value mem) mem
+					| _ -> print_endline "not implemented"; mem
+			in
+			(* Instanciation of the variable in the memory which will move - tested OK *)
+			let rec new_mem dec_list mem = 
+				(match dec_list with
+					| [] -> mem
+					| h::q -> 
+						(let new_mem_for = new_mem_aux h mem in
+						let new_mem_res = new_mem q new_mem_for in
+						begin
+							print_memory new_mem_res;
+							new_mem_res
+						end)
+				)
+			(* Incrementation of the variable - tested OK *)		
+			in
+			let rec incr inc_op_list mem =
+				(
+					match inc_op_list with
+						| [] -> mem
+						| h::q -> 
+							let exp_to_stat = Expr(h) in
+							(
+								let updated_mem = execute_statement exp_to_stat mem in
+								(
+									incr q updated_mem
+								)
+							)
+				)
+			in
+			(* modification of the memory during one iteration *)
+			let modif_mem inc_op_list stat mem =
+				let m1 = execute_statement stat mem in
+				(
+					let m2 = incr inc_op_list m1 in
+					(
+						print_memory m2;
+						m2
+					)
+				)
+			in
+			(* To evaluate the condition of the end of the for statement *)
+			let bool_of_limit bool_limit mem =
+				(
+					match bool_limit with
+						| Some(e)-> bool_of_string (get_value_of_exp e mem)
+						| None -> true
+				)
+			in
+			(* The main algorithm to execute the for statement *)
+			let rec exec_for  bool_limit inc_op_list stat mem =
+				(
+					let bool_res = bool_of_limit bool_limit mem in
+					(
+						match bool_res with
+								| true -> 
+									let updated_mem = modif_mem inc_op_list stat mem in
+									(
+										exec_for bool_limit inc_op_list stat updated_mem
+									)
+								| false -> mem
+					)
+				)
+			in
+			(* initializing the memory and executing *)
+			let starting_mem = new_mem dec_list mem in
+			(
+				exec_for bool_limit inc_op_list stat starting_mem
+			)
+		(* If bot implemented ... *)
 		| _ -> print_endline "not implemented"; mem
 
 

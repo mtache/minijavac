@@ -103,7 +103,7 @@ let float_operation_exec e1 op e2 =
 			| Op_ge ->  string_of_bool (val1 >= val2)
 			| Op_eq ->  string_of_bool (val1 = val2)
 
-		(* Function to execute a simple operation *)
+(* Function to execute a simple operation *)
 let boolean_operation_exec e1 op e2 =
 		let val1 = bool_of_string e1 in
 		let val2 = bool_of_string e2 in
